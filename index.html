@@ -234,12 +234,13 @@
     </div>
 
     <div class="container">
+        <!-- Replace '#' with your actual direct APK download link -->
         <div class="download-banner">
             <div class="download-text">
                 <h4>Get the Android App</h4>
                 <p>Browse faster and get instant notifications.</p>
             </div>
-            <a href="#" class="btn-download-app">Download APK</a>
+            <a href="#" id="apkDownloadBtn" class="btn-download-app" target="_blank">Download APK</a>
         </div>
 
         <div class="notice-box">
@@ -270,7 +271,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Query only houses where verification is false (approved)
         db.collection("houses").where("pendingVerification", "==", false).get().then((querySnapshot) => {
             const wrapper = document.getElementById("listingsWrapper");
             wrapper.innerHTML = ""; 
@@ -290,7 +290,13 @@
                 const imageUrl = data.imageUrl || data.image || "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80";
                 const phone = data.phone || "";
                 const whatsapp = data.whatsapp || "";
-                const mapLink = data.mapLink || "#";
+                
+                // Intelligent Map Link Fallback: if mapLink is missing or just '#', generate a Google Maps search query link automatically using the location name
+                let mapLink = data.mapLink;
+                if (!mapLink || mapLink === "#") {
+                    mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(houseName + " " + location + " Mulungushi")}`;
+                }
+
                 const docId = doc.id;
 
                 let cardHTML = `
