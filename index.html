@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="K8uRt6odxxf5046Rxu" />
     <title>MU-accommodation Listings</title>
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
@@ -22,9 +20,6 @@
             background-color: #2196F3;
             color: white;
             padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             font-size: 18px;
             font-weight: 500;
         }
@@ -42,13 +37,12 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .download-text h4 {
+        .download-banner h4 {
             margin: 0 0 4px 0;
             font-size: 16px;
         }
-        .download-text p {
+        .download-banner p {
             margin: 0;
             font-size: 12px;
             opacity: 0.9;
@@ -62,44 +56,17 @@
             text-decoration: none;
             font-size: 13px;
             white-space: nowrap;
-            display: inline-block;
-        }
-        .notice-box {
-            background-color: #e3f2fd;
-            border: 1px solid #bbdefb;
-            border-radius: 12px;
-            padding: 12px 15px;
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            color: #0d47a1;
-            font-size: 14px;
-        }
-        .notice-box span {
-            font-size: 18px;
-            margin-right: 10px;
-        }
-        .search-container {
-            position: relative;
-            margin-bottom: 15px;
         }
         .search-box {
             width: 100%;
-            padding: 12px 15px 12px 45px;
+            padding: 12px 15px;
             font-size: 15px;
             border: 1px solid #ccc;
             border-radius: 12px;
             box-sizing: border-box;
             background: white;
+            margin-bottom: 15px;
             outline: none;
-        }
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #2196F3;
-            font-size: 18px;
         }
         .listing-card {
             background: white;
@@ -119,7 +86,6 @@
             font-size: 18px;
             font-weight: bold;
             margin: 0 0 4px 0;
-            color: #111;
         }
         .listing-subtitle {
             font-size: 13px;
@@ -131,30 +97,6 @@
             font-weight: bold;
             color: #2e7d32;
         }
-        .badges {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-        .badge {
-            background-color: #e3f2fd;
-            color: #1565c0;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .rooms-badge {
-            background-color: #fff3e0;
-            color: #e65100;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
         .action-row {
             display: flex;
             gap: 10px;
@@ -164,11 +106,9 @@
             background-color: #25D366;
             color: white;
             flex: 1;
-            border: none;
             padding: 10px;
             border-radius: 8px;
             font-weight: bold;
-            cursor: pointer;
             text-align: center;
             text-decoration: none;
             font-size: 14px;
@@ -181,7 +121,6 @@
             padding: 10px;
             border-radius: 8px;
             font-weight: bold;
-            cursor: pointer;
             text-align: center;
             text-decoration: none;
             font-size: 14px;
@@ -194,7 +133,6 @@
             padding: 10px;
             border-radius: 8px;
             font-weight: bold;
-            cursor: pointer;
             text-align: center;
             text-decoration: none;
             font-size: 14px;
@@ -217,7 +155,6 @@
             height: 220px;
             object-fit: cover;
             flex-shrink: 0;
-            flex-grow: 0;
             scroll-snap-align: start;
         }
         .photo-id-tag {
@@ -231,7 +168,6 @@
             font-size: 11px;
             font-weight: bold;
             z-index: 10;
-            pointer-events: none;
         }
         .loading-text {
             text-align: center;
@@ -247,25 +183,15 @@
     </div>
 
     <div class="container">
-        <!-- Download APK Banner -->
         <div class="download-banner">
-            <div class="download-text">
+            <div>
                 <h4>Get the Android App</h4>
                 <p>Browse faster and get instant notifications.</p>
-                <p style="font-size: 9px; opacity: 0.7; margin-top: 2px;">SHA-256 Verified</p>
             </div>
-            <a href="https://github.com/charlesj-maker/mu-accommodation/releases/download/v1.0.0/app-release.apk" id="apkLink" class="btn-download-app" target="_blank">Download APK</a>
+            <a href="https://github.com/charlesj-maker/mu-accommodation/releases/download/v1.0.0/app-release.apk" class="btn-download-app" target="_blank">Download APK</a>
         </div>
 
-        <div class="notice-box">
-            <span>ℹ️</span>
-            <div>Browse boarding houses freely and speak to the admin for any issues.</div>
-        </div>
-
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-box" placeholder="Search by house name or location..." onkeyup="filterListings()">
-        </div>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search by house name or location..." onkeyup="filterListings()">
 
         <div id="listingsWrapper">
             <div class="loading-text">Loading verified listings...</div>
@@ -296,7 +222,6 @@
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                
                 const houseName = data.houseName || data.name || "Boarding House";
                 const location = data.location || "Mulungushi Area";
                 const price = data.price || "0";
@@ -304,7 +229,6 @@
                 const phone = data.phone || "";
                 const whatsapp = data.whatsapp || "";
                 
-                // Location Mapping (GeoPoint & Fallbacks)
                 let mapUrl = "#";
                 if (data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number') {
                     mapUrl = `https://www.google.com/maps/search/?api=1&query=${data.location.latitude},${data.location.longitude}`;
@@ -319,7 +243,6 @@
                     }
                 }
 
-                // Image Array Handling
                 let imagesArray = [];
                 if (Array.isArray(data.images) && data.images.length > 0) {
                     imagesArray = data.images;
@@ -338,19 +261,13 @@
                     imagesHtml += `<img src="${imgSrc}" alt="Boarding House Image" class="listing-img">`;
                 });
 
-                const docId = doc.id;
-
                 let cardHTML = `
                     <div class="listing-card" data-search="${houseName} ${location}">
                         <div class="listing-header">
                             <div>
                                 <div class="listing-title">${houseName}</div>
                                 <div class="listing-subtitle">${location}</div>
-                                <div class="badges">
-                                    <span class="badge">🌐 Wi-Fi</span>
-                                    <span class="badge">📖 Study Area</span>
-                                </div>
-                                <div class="rooms-badge">${rooms} Rooms Available</div>
+                                <div style="font-size:12px; color:#e65100; font-weight:bold; margin-bottom:10px;">${rooms} Rooms Available</div>
                             </div>
                             <div class="price-tag">K${price}</div>
                         </div>
@@ -377,14 +294,9 @@
         function filterListings() {
             let input = document.getElementById('searchInput').value.toLowerCase();
             let cards = document.getElementsByClassName('listing-card');
-            
             for (let i = 0; i < cards.length; i++) {
                 let searchData = cards[i].getAttribute('data-search').toLowerCase();
-                if (searchData.includes(input)) {
-                    cards[i].style.display = "";
-                } else {
-                    cards[i].style.display = "none";
-                }
+                cards[i].style.display = searchData.includes(input) ? "" : "none";
             }
         }
     </script>
