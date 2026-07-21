@@ -57,14 +57,13 @@
         .btn-download-app {
             background-color: white;
             color: #2e7d32;
-            padding: 8px 14px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-weight: bold;
             text-decoration: none;
             font-size: 13px;
             white-space: nowrap;
-            cursor: pointer;
-            border: none;
+            display: inline-block;
         }
         .notice-box {
             background-color: #e3f2fd;
@@ -201,27 +200,23 @@
             text-decoration: none;
             font-size: 14px;
         }
-        /* Horizontal Slider for Multiple Photos */
+        /* Fixed Horizontal Photo Scroller */
         .listing-photo-container {
             position: relative;
             background: #000;
             width: 100%;
             height: 220px;
-            overflow-x: auto;
             display: flex;
+            overflow-x: scroll;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
-        }
-        .listing-photo-container::-webkit-scrollbar {
-            display: none;
         }
         .listing-img {
             width: 100%;
             height: 220px;
             object-fit: cover;
-            flex-shrink: 0;
+            flex: 0 0 100%;
             scroll-snap-align: start;
-            display: block;
         }
         .photo-id-tag {
             position: absolute;
@@ -234,6 +229,7 @@
             font-size: 11px;
             font-weight: bold;
             z-index: 10;
+            pointer-events: none;
         }
         .loading-text {
             text-align: center;
@@ -254,8 +250,10 @@
             <div class="download-text">
                 <h4>Get the Android App</h4>
                 <p>Browse faster and get instant notifications.</p>
+                <p style="font-size: 9px; opacity: 0.7; margin-top: 2px;">SHA-256 Verified</p>
             </div>
-            <button onclick="downloadApp()" class="btn-download-app">Download APK</button>
+            <!-- Change '#' to your actual APK download link if you have one -->
+            <a href="#" id="apkLink" class="btn-download-app" target="_blank">Download APK</a>
         </div>
 
         <div class="notice-box">
@@ -274,15 +272,15 @@
     </div>
 
     <script>
-        // Put your direct Android App APK download link here:
-        const apkDownloadUrl = "sha256:f5d6ebdf79a226840b47382ba9e0454ab5b9d5a8c4991876cb433bdf79bad0e8"; 
-
-        function downloadApp() {
-            if(apkDownloadUrl === "sha256:f5d6ebdf79a226840b47382ba9e0454ab5b9d5a8c4991876cb433bdf79bad0e8") {
-                alert("App download link will be available soon!");
-            } else {
-                window.open(apkDownloadUrl, '_blank');
-            }
+        // Set your direct APK link here (e.g., your GitHub raw link or Google Drive link)
+        const apkUrl = "#"; 
+        if(apkUrl !== "#") {
+            document.getElementById("apkLink").setAttribute("href", apkUrl);
+        } else {
+            document.getElementById("apkLink").onclick = function(e) {
+                e.preventDefault();
+                alert("App download link will be active soon!");
+            };
         }
 
         const firebaseConfig = {
@@ -316,10 +314,19 @@
                 const phone = data.phone || "";
                 const whatsapp = data.whatsapp || "";
                 
-                // Directly use your pinned map link stored in Firebase (mapLink or locationLink)
-                const mapLink = data.mapLink || data.locationLink || data.coordinates || "#";
+                // Handle Map Links and Coordinates safely
+                let rawMap = data.mapLink || data.locationLink || data.coordinates || "";
+                let mapUrl = "#";
+                if (rawMap.startsWith("http")) {
+                    mapUrl = rawMap;
+                } else if (rawMap.includes(",")) {
+                    // Handles raw coordinate strings like "-14.4, 28.4"
+                    mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rawMap)}`;
+                } else {
+                    mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(houseName + " " + location)}`;
+                }
 
-                // Handle multiple images (supports array fields like images/imageUrls, or single image fallbacks)
+                // Handle multiple image formats cleanly
                 let imagesArray = [];
                 if (Array.isArray(data.images) && data.images.length > 0) {
                     imagesArray = data.images;
@@ -358,11 +365,11 @@
                         <div class="action-row">
                             <a href="https://wa.me/${whatsapp}" target="_blank" class="btn-whatsapp">WhatsApp</a>
                             <a href="tel:${phone}" class="btn-call">📞 Call Landlord</a>
-                            <a href="${mapLink}" target="_blank" class="btn-location">📍 Location</a>
+                            <a href="${mapUrl}" target="_blank" class="btn-location">📍 Location</a>
                         </div>
 
                         <div class="listing-photo-container">
-                            <span class="photo-id-tag">ID: ${docId} (${imagesArray.length} photos)</span>
+                            <span class="photo-id-tag">${imagesArray.length} Photos 📷</span>
                             ${imagesHtml}
                         </div>
                     </div>
