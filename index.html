@@ -6,9 +6,8 @@
     <meta name="google-site-verification" content="K8uRt6odxxf5046Rxu" />
     <title>MU-accommodation Listings</title>
     
-    <!-- Firebase App (Compat) SDK -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <!-- Firebase Firestore SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
     <style>
@@ -200,14 +199,14 @@
             text-decoration: none;
             font-size: 14px;
         }
-        /* Fixed Horizontal Photo Scroller */
+        /* Swipeable Horizontal Image Scroller */
         .listing-photo-container {
             position: relative;
             background: #000;
             width: 100%;
             height: 220px;
             display: flex;
-            overflow-x: scroll;
+            overflow-x: auto;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
         }
@@ -215,7 +214,8 @@
             width: 100%;
             height: 220px;
             object-fit: cover;
-            flex: 0 0 100%;
+            flex-shrink: 0;
+            flex-grow: 0;
             scroll-snap-align: start;
         }
         .photo-id-tag {
@@ -252,8 +252,7 @@
                 <p>Browse faster and get instant notifications.</p>
                 <p style="font-size: 9px; opacity: 0.7; margin-top: 2px;">SHA-256 Verified</p>
             </div>
-            <!-- Change '#' to your actual APK download link if you have one -->
-            <a href="#" id="apkLink" class="btn-download-app" target="_blank">Download APK</a>
+            <a href="https://github.com/charlesj-maker/mu-accommodation/releases/download/v1.0.0/app-release.apk" id="apkLink" class="btn-download-app" target="_blank">Download APK</a>
         </div>
 
         <div class="notice-box">
@@ -272,17 +271,6 @@
     </div>
 
     <script>
-        // Set your direct APK link here (e.g., your GitHub raw link or Google Drive link)
-    const apkUrl = "https://github.com/charlesj-maker/mu-accommodation/releases/download/v1.0.0/app-release.apk";
-        if(apkUrl !== "https://github.com/charlesj-maker/mu-accommodation/releases/download/v1.0.0/app-release.apk"; {
-            document.getElementById("apkLink").setAttribute("href", apkUrl);
-        } else {
-            document.getElementById("apkLink").onclick = function(e) {
-                e.preventDefault();
-                alert("App download link will be active soon!");
-            };
-        }
-
         const firebaseConfig = {
             apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
             authDomain: "university-homes-zambia.firebaseapp.com",
@@ -314,19 +302,21 @@
                 const phone = data.phone || "";
                 const whatsapp = data.whatsapp || "";
                 
-                // Handle Map Links and Coordinates safely
-                let rawMap = data.mapLink || data.locationLink || data.coordinates || "";
+                // Map link handling: Pulls exact pin/coordinate data saved from your mobile app backend
+                let rawMap = data.mapLink || data.locationLink || data.coordinates || data.latLng || "";
                 let mapUrl = "#";
+                
                 if (rawMap.startsWith("http")) {
                     mapUrl = rawMap;
                 } else if (rawMap.includes(",")) {
-                    // Handles raw coordinate strings like "-14.4, 28.4"
+                    // Direct coordinates pin link for Google Maps
                     mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rawMap)}`;
                 } else {
-                    mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(houseName + " " + location)}`;
+                    // Fallback pin search using exact coordinates structure if stored differently
+                    mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(houseName + " " + location + " Mulungushi")}`;
                 }
 
-                // Handle multiple image formats cleanly
+                // Image array collection supporting multiple picture uploads from your app
                 let imagesArray = [];
                 if (Array.isArray(data.images) && data.images.length > 0) {
                     imagesArray = data.images;
@@ -342,7 +332,7 @@
 
                 let imagesHtml = '';
                 imagesArray.forEach((imgSrc) => {
-                    imagesHtml += `<img src="${imgSrc}" alt="Boarding House Room" class="listing-img">`;
+                    imagesHtml += `<img src="${imgSrc}" alt="Boarding House Image" class="listing-img">`;
                 });
 
                 const docId = doc.id;
@@ -369,7 +359,7 @@
                         </div>
 
                         <div class="listing-photo-container">
-                            <span class="photo-id-tag">${imagesArray.length} Photos 📷</span>
+                            <span class="photo-id-tag">📷 ${imagesArray.length} Photos (Swipe)</span>
                             ${imagesHtml}
                         </div>
                     </div>
