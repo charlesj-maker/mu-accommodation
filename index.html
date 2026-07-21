@@ -19,7 +19,6 @@
             padding: 0;
             color: #333;
         }
-        /* Top App Bar */
         .app-bar {
             background-color: #2196F3;
             color: white;
@@ -35,7 +34,6 @@
             margin: 0 auto;
             padding: 15px;
         }
-        /* Android App Download Banner */
         .download-banner {
             background: linear-gradient(135deg, #2e7d32, #43a047);
             color: white;
@@ -66,7 +64,6 @@
             font-size: 13px;
             white-space: nowrap;
         }
-        /* Notice Banner */
         .notice-box {
             background-color: #e3f2fd;
             border: 1px solid #bbdefb;
@@ -82,7 +79,6 @@
             font-size: 18px;
             margin-right: 10px;
         }
-        /* Search Box */
         .search-container {
             position: relative;
             margin-bottom: 15px;
@@ -105,7 +101,6 @@
             color: #2196F3;
             font-size: 18px;
         }
-        /* Listing Card */
         .listing-card {
             background: white;
             border-radius: 16px;
@@ -160,7 +155,6 @@
             display: inline-block;
             margin-bottom: 10px;
         }
-        /* Action Buttons Row */
         .action-row {
             display: flex;
             gap: 10px;
@@ -235,14 +229,11 @@
 </head>
 <body>
 
-    <!-- Top App Header -->
     <div class="app-bar">
         <span>MU-accommodation Listings</span>
     </div>
 
     <div class="container">
-        
-        <!-- Android App Download Banner -->
         <div class="download-banner">
             <div class="download-text">
                 <h4>Get the Android App</h4>
@@ -251,27 +242,22 @@
             <a href="#" class="btn-download-app">Download APK</a>
         </div>
 
-        <!-- Notice Box -->
         <div class="notice-box">
             <span>ℹ️</span>
             <div>Browse boarding houses freely and speak to the admin for any issues.</div>
         </div>
 
-        <!-- Search Bar -->
         <div class="search-container">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" class="search-box" placeholder="Search by house name or location..." onkeyup="filterListings()">
         </div>
 
-        <!-- Dynamic Listings Wrapper -->
         <div id="listingsWrapper">
-            <div class="loading-text">Loading live listings from database...</div>
+            <div class="loading-text">Loading verified listings...</div>
         </div>
-
     </div>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
             authDomain: "university-homes-zambia.firebaseapp.com",
@@ -281,24 +267,22 @@
             appId: "1:236985394876:web:generated"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Fetch Listings from Firestore Collection 'houses'
-        db.collection("houses").get().then((querySnapshot) => {
+        // Query only houses where verification is false (approved)
+        db.collection("houses").where("pendingVerification", "==", false).get().then((querySnapshot) => {
             const wrapper = document.getElementById("listingsWrapper");
             wrapper.innerHTML = ""; 
 
             if (querySnapshot.empty) {
-                wrapper.innerHTML = "<div class='loading-text'>No listings found yet.</div>";
+                wrapper.innerHTML = "<div class='loading-text'>No approved listings available right now.</div>";
                 return;
             }
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // Skip pending houses if rules require verification check, or handle fields safely
                 const houseName = data.houseName || data.name || "Boarding House";
                 const location = data.location || "Mulungushi Area";
                 const price = data.price || "0";
@@ -343,7 +327,6 @@
             document.getElementById("listingsWrapper").innerHTML = "<div class='loading-text'>Error loading listings. Check database rules.</div>";
         });
 
-        // Search Filter Logic
         function filterListings() {
             let input = document.getElementById('searchInput').value.toLowerCase();
             let cards = document.getElementsByClassName('listing-card');
