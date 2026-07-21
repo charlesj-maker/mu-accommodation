@@ -1,13 +1,361 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta name="google-site-verification" content="K8uRt60dxxfS046RxudfqSb6xaZIcMh-w1iCORqzLi8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="K8uRt6odxxf5046Rxu" />
+    <title>MU-accommodation Listings</title>
+    
+    <!-- Firebase App (Compat) SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <!-- Firebase Firestore SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        /* Top App Bar */
+        .app-bar {
+            background-color: #2196F3;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        /* Android App Download Banner */
+        .download-banner {
+            background: linear-gradient(135deg, #2e7d32, #43a047);
+            color: white;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .download-text h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+        }
+        .download-text p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .btn-download-app {
+            background-color: white;
+            color: #2e7d32;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        /* Notice Banner */
+        .notice-box {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            color: #0d47a1;
+            font-size: 14px;
+        }
+        .notice-box span {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        /* Search Box */
+        .search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            box-sizing: border-box;
+            background: white;
+            outline: none;
+        }
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #2196F3;
+            font-size: 18px;
+        }
+        /* Listing Card */
+        .listing-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #eaeaea;
+        }
+        .listing-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .listing-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 4px 0;
+            color: #111;
+        }
+        .listing-subtitle {
+            font-size: 13px;
+            color: #666;
+            margin: 0 0 10px 0;
+        }
+        .price-tag {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .badge {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .rooms-badge {
+            background-color: #fff3e0;
+            color: #e65100;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        /* Action Buttons Row */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            padding: 0 15px 15px 15px;
+        }
+        .btn-whatsapp {
+            background-color: #25D366;
+            color: white;
+            flex: 1;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn-call {
+            background-color: white;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+            flex: 1.2;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn-location {
+            background-color: white;
+            color: #2196F3;
+            border: 1px solid #2196F3;
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .listing-photo-container {
+            position: relative;
+            background: #000;
+        }
+        .listing-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+        .photo-id-tag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .loading-text {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>MU-Accommodation App</h1>
-    <p>Download the official app below:</p>
-    <a href="https://github.com/charlesj-maker/mu-accommodation/releases/latest/download/app-release.apk">
-        Download app-release.apk
-    </a>
+
+    <!-- Top App Header -->
+    <div class="app-bar">
+        <span>MU-accommodation Listings</span>
+    </div>
+
+    <div class="container">
+        
+        <!-- Android App Download Banner -->
+        <div class="download-banner">
+            <div class="download-text">
+                <h4>Get the Android App</h4>
+                <p>Browse faster and get instant notifications.</p>
+            </div>
+            <a href="#" class="btn-download-app">Download APK</a>
+        </div>
+
+        <!-- Notice Box -->
+        <div class="notice-box">
+            <span>ℹ️</span>
+            <div>Browse boarding houses freely and speak to the admin for any issues.</div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search by house name or location..." onkeyup="filterListings()">
+        </div>
+
+        <!-- Dynamic Listings Wrapper -->
+        <div id="listingsWrapper">
+            <div class="loading-text">Loading live listings from database...</div>
+        </div>
+
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjAoyorXNlHxRMzkFgAyiA_1L_VcR-X9c",
+            authDomain: "university-homes-zambia.firebaseapp.com",
+            projectId: "university-homes-zambia",
+            storageBucket: "university-homes-zambia.appspot.com",
+            messagingSenderId: "236985394876",
+            appId: "1:236985394876:web:generated"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Fetch Listings from Firestore Collection
+        db.collection("listings").get().then((querySnapshot) => {
+            const wrapper = document.getElementById("listingsWrapper");
+            wrapper.innerHTML = ""; 
+
+            if (querySnapshot.empty) {
+                wrapper.innerHTML = "<div class='loading-text'>No listings found yet.</div>";
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                const houseName = data.houseName || data.name || "Boarding House";
+                const location = data.location || "Mulungushi Area";
+                const price = data.price || "0";
+                const rooms = data.roomsAvailable || "Available";
+                const imageUrl = data.imageUrl || data.image || "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80";
+                const phone = data.phone || "";
+                const whatsapp = data.whatsapp || "";
+                const mapLink = data.mapLink || "#";
+                const docId = doc.id;
+
+                let cardHTML = `
+                    <div class="listing-card" data-search="${houseName} ${location}">
+                        <div class="listing-header">
+                            <div>
+                                <div class="listing-title">${houseName}</div>
+                                <div class="listing-subtitle">${location}</div>
+                                <div class="badges">
+                                    <span class="badge">🌐 Wi-Fi</span>
+                                    <span class="badge">📖 Study Area</span>
+                                </div>
+                                <div class="rooms-badge">${rooms} Rooms Available</div>
+                            </div>
+                            <div class="price-tag">K${price}</div>
+                        </div>
+
+                        <div class="action-row">
+                            <a href="https://wa.me/${whatsapp}" target="_blank" class="btn-whatsapp">WhatsApp</a>
+                            <a href="tel:${phone}" class="btn-call">📞 Call Landlord</a>
+                            <a href="${mapLink}" target="_blank" class="btn-location">📍 Location</a>
+                        </div>
+
+                        <div class="listing-photo-container">
+                            <span class="photo-id-tag">ID: ${docId}</span>
+                            <img src="${imageUrl}" alt="Boarding House Room" class="listing-img">
+                        </div>
+                    </div>
+                `;
+                wrapper.innerHTML += cardHTML;
+            });
+        }).catch((error) => {
+            console.error("Error getting documents: ", error);
+            document.getElementById("listingsWrapper").innerHTML = "<div class='loading-text'>Error loading listings. Check database rules.</div>";
+        });
+
+        // Search Filter Logic
+        function filterListings() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let cards = document.getElementsByClassName('listing-card');
+            
+            for (let i = 0; i < cards.length; i++) {
+                let searchData = cards[i].getAttribute('data-search').toLowerCase();
+                if (searchData.includes(input)) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        }
+    </script>
 </body>
 </html>
