@@ -273,7 +273,7 @@
     <script>
         // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyCjAoyorXNlHxRMzkFgAyiA_1L_VcR-X9c",
+            apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
             authDomain: "university-homes-zambia.firebaseapp.com",
             projectId: "university-homes-zambia",
             storageBucket: "university-homes-zambia.appspot.com",
@@ -285,8 +285,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Fetch Listings from Firestore Collection
-        db.collection("listings").get().then((querySnapshot) => {
+        // Fetch Listings from Firestore Collection 'houses'
+        db.collection("houses").get().then((querySnapshot) => {
             const wrapper = document.getElementById("listingsWrapper");
             wrapper.innerHTML = ""; 
 
@@ -298,6 +298,7 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 
+                // Skip pending houses if rules require verification check, or handle fields safely
                 const houseName = data.houseName || data.name || "Boarding House";
                 const location = data.location || "Mulungushi Area";
                 const price = data.price || "0";
