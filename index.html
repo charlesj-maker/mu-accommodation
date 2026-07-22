@@ -1,304 +1,786 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MU-accommodation Listings</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MU Accommodation — Verified Boarding Houses</title>
 
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-        .app-bar {
-            background-color: #2196F3;
-            color: white;
-            padding: 16px 20px;
-            font-size: 18px;
-            font-weight: 500;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 15px;
-        }
-        .download-banner {
-            background: linear-gradient(135deg, #2e7d32, #43a047);
-            color: white;
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .download-banner h4 {
-            margin: 0 0 4px 0;
-            font-size: 16px;
-        }
-        .download-banner p {
-            margin: 0;
-            font-size: 12px;
-            opacity: 0.9;
-        }
-        .btn-download-app {
-            background-color: white;
-            color: #2e7d32;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-        .search-box {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 15px;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            box-sizing: border-box;
-            background: white;
-            margin-bottom: 15px;
-            outline: none;
-        }
-        .listing-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #eaeaea;
-        }
-        .listing-header {
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .listing-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0 0 4px 0;
-        }
-        .listing-subtitle {
-            font-size: 13px;
-            color: #666;
-            margin: 0 0 10px 0;
-        }
-        .price-tag {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2e7d32;
-        }
-        .action-row {
-            display: flex;
-            gap: 10px;
-            padding: 0 15px 15px 15px;
-        }
-        .btn-whatsapp {
-            background-color: #25D366;
-            color: white;
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .btn-call {
-            background-color: white;
-            color: #2e7d32;
-            border: 1px solid #2e7d32;
-            flex: 1.2;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .btn-location {
-            background-color: white;
-            color: #2196F3;
-            border: 1px solid #2196F3;
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .listing-photo-container {
-            position: relative;
-            background: #000;
-            width: 100%;
-            height: 220px;
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-        }
-        .listing-photo-container::-webkit-scrollbar {
-            display: none;
-        }
-        .listing-img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            flex-shrink: 0;
-            scroll-snap-align: start;
-        }
-        .photo-id-tag {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.75);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            z-index: 10;
-        }
-        .loading-text {
-            text-align: center;
-            color: #666;
-            padding: 20px;
-        }
-    </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-functions-compat.js"></script>
+
+<style>
+  :root {
+    --brand-blue: #1E88E5;
+    --brand-blue-dark: #1565C0;
+    --brand-green: #2E7D32;
+    --brand-green-light: #43A047;
+    --whatsapp: #25D366;
+    --ink: #1A2233;
+    --ink-soft: #5B6472;
+    --bg: #F3F5F8;
+    --card-bg: #FFFFFF;
+    --border: #E7EAEF;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-card: 0 6px 24px rgba(20, 30, 60, 0.07);
+    --shadow-soft: 0 2px 10px rgba(20, 30, 60, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- App bar ---------- */
+  .app-bar {
+    background: linear-gradient(120deg, var(--brand-blue-dark), var(--brand-blue));
+    color: white;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 18px rgba(21, 101, 192, 0.25);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .app-bar .logo-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .app-bar .title-block { line-height: 1.25; }
+  .app-bar .title-block strong { font-size: 16px; font-weight: 700; display: block; }
+  .app-bar .title-block span { font-size: 12px; opacity: 0.85; font-weight: 400; }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px 15px 60px 15px;
+  }
+
+  /* ---------- Download banner ---------- */
+  .download-banner {
+    background: linear-gradient(135deg, #1B5E20, var(--brand-green-light));
+    color: white;
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-card);
+  }
+  .download-banner h4 {
+    margin: 0 0 3px 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .download-banner p {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.92;
+    font-weight: 400;
+  }
+  .btn-download-app {
+    background-color: white;
+    color: #1B5E20;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 13px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-download-app:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+  /* ---------- Search ---------- */
+  .search-box-wrap { position: relative; margin-bottom: 18px; }
+  .search-box {
+    width: 100%;
+    padding: 13px 15px 13px 42px;
+    font-size: 14.5px;
+    font-family: inherit;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-sizing: border-box;
+    background: white;
+    outline: none;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .search-box:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.12);
+  }
+  .search-box-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Listing card ---------- */
+  .listing-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s ease;
+  }
+  .listing-card:hover { box-shadow: 0 10px 30px rgba(20,30,60,0.11); }
+
+  .listing-header {
+    padding: 16px 16px 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .listing-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.2px;
+  }
+  .listing-subtitle {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .rooms-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: #B45309;
+    background: #FFF7E6;
+    border: 1px solid #FDE9C2;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .price-tag {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--brand-green);
+    white-space: nowrap;
+  }
+  .price-tag small { font-size: 11px; font-weight: 600; color: var(--ink-soft); display: block; text-align: right; }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    padding: 4px 16px 16px 16px;
+  }
+  .action-row a {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    font-size: 13.5px;
+    border: 1px solid transparent;
+    transition: transform 0.12s ease, filter 0.12s ease;
+    cursor: pointer;
+  }
+  .action-row a:active { transform: scale(0.97); }
+  .btn-whatsapp { background-color: var(--whatsapp); color: white; }
+  .btn-whatsapp:hover { filter: brightness(1.05); }
+  .btn-call { background-color: white; color: var(--brand-green); border-color: #CDE4D0; }
+  .btn-call:hover { background: #F3FAF3; }
+  .btn-location { background-color: white; color: var(--brand-blue-dark); border-color: #CFE3F7; }
+  .btn-location:hover { background: #F2F8FE; }
+  .action-row svg { flex-shrink: 0; }
+
+  /* ---------- Gallery ---------- */
+  .gallery-wrap {
+    position: relative;
+    background: #0B0F17;
+  }
+  .listing-photo-container {
+    position: relative;
+    width: 100%;
+    height: 230px;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  .listing-photo-container::-webkit-scrollbar { display: none; }
+  .listing-img {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  .photo-id-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.55);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+  }
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.4);
+    color: white;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background 0.15s ease;
+  }
+  .gallery-nav:hover { background: rgba(0,0,0,0.62); }
+  .gallery-nav.prev { left: 8px; }
+  .gallery-nav.next { right: 8px; }
+  .gallery-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    z-index: 10;
+  }
+  .gallery-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.45);
+    transition: background 0.15s ease, width 0.15s ease;
+  }
+  .gallery-dot.active { background: white; width: 16px; border-radius: 4px; }
+
+  /* ---------- Loading skeleton ---------- */
+  .skeleton-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-soft);
+  }
+  .skeleton-photo { height: 230px; }
+  .skeleton-line { height: 14px; margin: 14px 16px; border-radius: 6px; }
+  .skeleton-line.short { width: 40%; }
+  .skeleton-photo, .skeleton-line {
+    background: linear-gradient(90deg, #EEF1F5 25%, #E4E8EE 37%, #EEF1F5 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+  }
+
+  .empty-state, .loading-text {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 36px 20px;
+    font-size: 14px;
+  }
+
+  .site-footer {
+    text-align: center;
+    padding: 26px 16px 10px 16px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .site-footer a { color: var(--brand-green); font-weight: 600; text-decoration: none; }
+
+  /* ---------- Payment gate modal ---------- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 200;
+    padding: 0;
+  }
+  .overlay.hidden { display: none; }
+  .payment-modal {
+    background: white;
+    width: 100%;
+    max-width: 460px;
+    border-radius: 20px 20px 0 0;
+    padding: 22px 22px 26px 22px;
+    animation: slideUp 0.2s ease;
+  }
+  @media (min-width: 520px) {
+    .overlay { align-items: center; }
+    .payment-modal { border-radius: 20px; }
+  }
+  @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .payment-modal h3 {
+    margin: 0 0 12px 0;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .payment-modal p { font-size: 14px; line-height: 1.5; color: var(--ink); margin: 0 0 12px 0; }
+  .payment-note {
+    background: #EAF3FE;
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 12.5px;
+    color: #14487A;
+    margin-bottom: 14px;
+  }
+  .payment-support-link {
+    display: inline-block;
+    font-size: 12.5px;
+    color: var(--brand-green);
+    text-decoration: underline;
+    cursor: pointer;
+    margin-bottom: 4px;
+  }
+  .payment-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14.5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    font-family: inherit;
+    outline: none;
+  }
+  .payment-input:focus { border-color: var(--brand-blue); }
+  .payment-error { color: #C62828; font-size: 12.5px; margin: 0 0 10px 0; min-height: 14px; }
+  .payment-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .payment-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-secondary { background: #F1F3F6; color: var(--ink); }
+  .btn-primary { background: var(--brand-blue); color: white; }
+  .btn-primary.green { background: var(--brand-green); }
+  .payment-center { text-align: center; padding: 10px 0; }
+  .spinner {
+    width: 34px; height: 34px;
+    border: 3px solid #E3E8EF;
+    border-top-color: var(--brand-blue);
+    border-radius: 50%;
+    margin: 4px auto 16px auto;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
 
-    <div class="app-bar">
-        <span>MU-accommodation Listings</span>
-    </div>
+<div class="app-bar">
+  <div class="logo-badge">MU</div>
+  <div class="title-block">
+    <strong>MU Accommodation</strong>
+    <span>Verified boarding house listings</span>
+  </div>
+</div>
 
-    <div class="container">
-        <div class="download-banner">
+<div class="container">
+
+  <div class="download-banner">
+    <div>
+      <h4>Get the Android App</h4>
+      <p>Browse faster and get instant notifications.</p>
+    </div>
+    <!-- Replace the id= value below with your actual Play Store package name -->
+    <a href="https://play.google.com/store/apps/details?id=com.muaccommodation.app" class="btn-download-app" target="_blank" rel="noopener">
+      Download on Playstore
+    </a>
+  </div>
+
+  <div class="search-box-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" class="search-box" placeholder="Search by house name or location..." onkeyup="filterListings()">
+  </div>
+
+  <div id="listingsWrapper">
+    <div class="skeleton-card"><div class="skeleton-photo"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+    <div class="skeleton-card"><div class="skeleton-photo"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+  </div>
+
+  <div class="site-footer">
+    House full, already paid and need a refund, or something not working?<br>
+    Message us on <a href="https://wa.me/260776480862" target="_blank" rel="noopener">WhatsApp</a>.
+  </div>
+</div>
+
+<!-- Payment gate modal (shared by all listing cards) -->
+<div class="overlay hidden" id="paymentOverlay">
+  <div class="payment-modal" id="paymentModal"></div>
+</div>
+
+<script>
+  // ================= Firebase =================
+  const firebaseConfig = {
+    apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
+    authDomain: "university-homes-zambia.firebaseapp.com",
+    projectId: "university-homes-zambia",
+    storageBucket: "university-homes-zambia.appspot.com",
+    messagingSenderId: "236985394876",
+    appId: "1:236985394876:web:generated"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const functions = firebase.functions();
+
+  const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80";
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // ================= Render listings =================
+  db.collection("houses").where("pendingVerification", "==", false).get().then((querySnapshot) => {
+    const wrapper = document.getElementById("listingsWrapper");
+    wrapper.innerHTML = "";
+
+    if (querySnapshot.empty) {
+      wrapper.innerHTML = "<div class='empty-state'>No approved listings available right now. Please check back soon.</div>";
+      return;
+    }
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const houseId = doc.id;
+
+      // These field names match exactly what the Flutter app writes to Firestore.
+      const houseName = data.name || data.houseName || "Boarding House";
+      const location = data.location || "Mulungushi Area";
+      const price = data.price || "0";
+      const rooms = data.roomsAvailable || "Available";
+      const phone = data.phone || "";
+      const whatsapp = data.whatsapp || "";
+
+      // Location pin: the app stores latitude/longitude as top-level numeric fields,
+      // NOT nested inside "location" (location is just the text address).
+      const lat = typeof data.latitude === 'number' ? data.latitude : parseFloat(data.latitude);
+      const lng = typeof data.longitude === 'number' ? data.longitude : parseFloat(data.longitude);
+
+      let mapUrl;
+      if (!isNaN(lat) && !isNaN(lng)) {
+        mapUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      } else {
+        mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(houseName + " " + location + " Mulungushi University")}`;
+      }
+
+      // Images: the app saves this array under "imageUrl" (singular field name, plural array).
+      let imagesArray = [];
+      if (Array.isArray(data.imageUrl) && data.imageUrl.length > 0) {
+        imagesArray = data.imageUrl;
+      } else if (typeof data.imageUrl === 'string' && data.imageUrl) {
+        imagesArray = [data.imageUrl];
+      } else if (Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
+        imagesArray = data.imageUrls;
+      } else if (Array.isArray(data.images) && data.images.length > 0) {
+        imagesArray = data.images;
+      } else {
+        imagesArray = [PLACEHOLDER_IMG];
+      }
+
+      const imagesHtml = imagesArray
+        .map(src => `<img src="${src}" alt="${escapeHtml(houseName)} photo" class="listing-img">`)
+        .join('');
+
+      const dotsHtml = imagesArray
+        .map((_, i) => `<div class="gallery-dot${i === 0 ? ' active' : ''}"></div>`)
+        .join('');
+
+      const navHtml = imagesArray.length > 1 ? `
+        <button class="gallery-nav prev" onclick="navGallery(this,-1)" aria-label="Previous photo">&#8249;</button>
+        <button class="gallery-nav next" onclick="navGallery(this,1)" aria-label="Next photo">&#8250;</button>
+        <div class="gallery-dots">${dotsHtml}</div>
+      ` : '';
+
+      const waMessage = `Hi, I am interested in the listing '${houseName}' (ID: ${houseId}). Is it available?`;
+      const waTarget = `https://wa.me/${whatsapp}?text=${encodeURIComponent(waMessage)}`;
+
+      const cardHTML = `
+        <div class="listing-card" data-search="${escapeHtml((houseName + ' ' + location).toLowerCase())}">
+          <div class="listing-header">
             <div>
-                <h4>Get the Android App</h4>
-                <p>Browse faster and get instant notifications.</p>
+              <div class="listing-title">${escapeHtml(houseName)}</div>
+              <div class="listing-subtitle">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                ${escapeHtml(location)}
+              </div>
+              <span class="rooms-chip">${escapeHtml(String(rooms))} Rooms Available</span>
             </div>
-            <a href="https://github.com/charlesj-maker/mu-accommodation/releases/download/v1.0.0/app-release.apk" class="btn-download-app" target="_blank">Download APK</a>
+            <div class="price-tag">K${escapeHtml(String(price))}<small>/ month</small></div>
+          </div>
+
+          <div class="action-row">
+            <a href="#" class="btn-whatsapp protected-action" data-house-id="${houseId}" data-house-name="${escapeHtml(houseName)}" data-target="${waTarget}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.4 0-.5C10 9 9.4 7.6 9.1 7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.3-.1-.2-.3-.2-.6-.3z"/><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+              WhatsApp
+            </a>
+            <a href="#" class="btn-call protected-action" data-house-id="${houseId}" data-house-name="${escapeHtml(houseName)}" data-target="tel:${phone}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .6 2.9a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.5 2.9.6a2 2 0 0 1 1.8 2.1z"/></svg>
+              Call
+            </a>
+            <a href="#" class="btn-location protected-action" data-house-id="${houseId}" data-house-name="${escapeHtml(houseName)}" data-target="${mapUrl}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              Location
+            </a>
+          </div>
+
+          <div class="gallery-wrap">
+            <div class="listing-photo-container" onscroll="updateGalleryUI(this)">
+              ${imagesHtml}
+            </div>
+            <span class="photo-id-tag">📷 ${imagesArray.length} Photo${imagesArray.length > 1 ? 's' : ''}</span>
+            ${navHtml}
+          </div>
         </div>
+      `;
+      wrapper.insertAdjacentHTML('beforeend', cardHTML);
+    });
+  }).catch((error) => {
+    console.error("Error getting documents: ", error);
+    document.getElementById("listingsWrapper").innerHTML =
+      "<div class='empty-state'>Couldn't load listings right now. Please check your connection and try again.</div>";
+  });
 
-        <input type="text" id="searchInput" class="search-box" placeholder="Search by house name or location..." onkeyup="filterListings()">
+  function filterListings() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.getElementsByClassName('listing-card');
+    let anyVisible = false;
+    for (let i = 0; i < cards.length; i++) {
+      const match = cards[i].getAttribute('data-search').includes(input);
+      cards[i].style.display = match ? "" : "none";
+      if (match) anyVisible = true;
+    }
+    let noResultsEl = document.getElementById('noResultsMsg');
+    if (!anyVisible) {
+      if (!noResultsEl) {
+        noResultsEl = document.createElement('div');
+        noResultsEl.id = 'noResultsMsg';
+        noResultsEl.className = 'empty-state';
+        noResultsEl.textContent = 'No listings match your search.';
+        document.getElementById('listingsWrapper').appendChild(noResultsEl);
+      }
+    } else if (noResultsEl) {
+      noResultsEl.remove();
+    }
+  }
 
-        <div id="listingsWrapper">
-            <div class="loading-text">Loading verified listings...</div>
-        </div>
-    </div>
+  // ================= Gallery (fixes "can't scroll") =================
+  // Click/tap arrows to move by one photo width; dots + counter reflect
+  // the currently visible photo. Native touch swipe keeps working too.
+  function navGallery(btn, dir) {
+    const wrap = btn.closest('.gallery-wrap');
+    const container = wrap.querySelector('.listing-photo-container');
+    container.scrollBy({ left: dir * container.clientWidth, behavior: 'smooth' });
+  }
 
-    <script>
-        const firebaseConfig = {
-            apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
-            authDomain: "university-homes-zambia.firebaseapp.com",
-            projectId: "university-homes-zambia",
-            storageBucket: "university-homes-zambia.appspot.com",
-            messagingSenderId: "236985394876",
-            appId: "1:236985394876:web:generated"
-        };
+  function updateGalleryUI(container) {
+    const wrap = container.closest('.gallery-wrap');
+    const total = container.querySelectorAll('.listing-img').length;
+    const idx = Math.round(container.scrollLeft / container.clientWidth);
+    const tag = wrap.querySelector('.photo-id-tag');
+    if (tag) tag.textContent = `📷 ${Math.min(idx + 1, total)} / ${total}`;
+    const dots = wrap.querySelectorAll('.gallery-dot');
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+  // ================= Payment gate (K100 access fee, same as the app) =================
+  const SUPPORT_WHATSAPP = "260776480862";
+  const ACCESS_FEE = "100";
 
-        db.collection("houses").where("pendingVerification", "==", false).get().then((querySnapshot) => {
-            const wrapper = document.getElementById("listingsWrapper");
-            wrapper.innerHTML = ""; 
+  const PaymentGate = {
+    currentHouseId: null,
+    currentHouseName: null,
+    pendingTarget: null,
+    unsub: null,
 
-            if (querySnapshot.empty) {
-                wrapper.innerHTML = "<div class='loading-text'>No approved listings available right now.</div>";
-                return;
-            }
-
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const houseName = data.houseName || data.name || "Boarding House";
-                const location = data.location || "Mulungushi Area";
-                const price = data.price || "0";
-                const rooms = data.roomsAvailable || "Available";
-                const phone = data.phone || "";
-                const whatsapp = data.whatsapp || "";
-                
-                let mapUrl = "#";
-                if (data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number') {
-                    mapUrl = `https://www.google.com/maps/search/?api=1&query=${data.location.latitude},${data.location.longitude}`;
-                } else {
-                    let rawMap = data.mapLink || data.locationLink || data.coordinates || data.latLng || "";
-                    if (rawMap.startsWith("http")) {
-                        mapUrl = rawMap;
-                    } else if (rawMap.includes(",")) {
-                        mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rawMap)}`;
-                    } else {
-                        mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(houseName + " " + location + " Mulungushi University")}`;
-                    }
-                }
-
-                let imagesArray = [];
-                if (Array.isArray(data.images) && data.images.length > 0) {
-                    imagesArray = data.images;
-                } else if (Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
-                    imagesArray = data.imageUrls;
-                } else if (data.imageUrl) {
-                    imagesArray = [data.imageUrl];
-                } else if (data.image) {
-                    imagesArray = [data.image];
-                } else {
-                    imagesArray = ["https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80"];
-                }
-
-                let imagesHtml = '';
-                imagesArray.forEach((imgSrc) => {
-                    imagesHtml += `<img src="${imgSrc}" alt="Boarding House Image" class="listing-img">`;
-                });
-
-                let cardHTML = `
-                    <div class="listing-card" data-search="${houseName} ${location}">
-                        <div class="listing-header">
-                            <div>
-                                <div class="listing-title">${houseName}</div>
-                                <div class="listing-subtitle">${location}</div>
-                                <div style="font-size:12px; color:#e65100; font-weight:bold; margin-bottom:10px;">${rooms} Rooms Available</div>
-                            </div>
-                            <div class="price-tag">K${price}</div>
-                        </div>
-
-                        <div class="action-row">
-                            <a href="https://wa.me/${whatsapp}" target="_blank" class="btn-whatsapp">WhatsApp</a>
-                            <a href="tel:${phone}" class="btn-call">📞 Call Landlord</a>
-                            <a href="${mapUrl}" target="_blank" class="btn-location">📍 Location</a>
-                        </div>
-
-                        <div class="listing-photo-container">
-                            <span class="photo-id-tag">📷 ${imagesArray.length} Photos (Swipe)</span>
-                            ${imagesHtml}
-                        </div>
-                    </div>
-                `;
-                wrapper.innerHTML += cardHTML;
-            });
-        }).catch((error) => {
-            console.error("Error getting documents: ", error);
-            document.getElementById("listingsWrapper").innerHTML = "<div class='loading-text'>Error loading listings. Check database rules.</div>";
+    isUnlocked(houseId) {
+      return localStorage.getItem('paid_house_' + houseId) === 'true';
+    },
+    unlock(houseId) {
+      localStorage.setItem('paid_house_' + houseId, 'true');
+    },
+    require(houseId, houseName, target) {
+      if (this.isUnlocked(houseId)) {
+        window.open(target, '_blank');
+        return;
+      }
+      this.currentHouseId = houseId;
+      this.currentHouseName = houseName;
+      this.pendingTarget = target;
+      this.render('intro');
+      document.getElementById('paymentOverlay').classList.remove('hidden');
+    },
+    close() {
+      document.getElementById('paymentOverlay').classList.add('hidden');
+      if (this.unsub) { this.unsub(); this.unsub = null; }
+    },
+    contactSupport(reason) {
+      const msg = `Hi, I need help regarding '${this.currentHouseName}' (ID: ${this.currentHouseId}). Reason: ${reason}`;
+      window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+    },
+    async submit() {
+      const input = document.getElementById('payPhoneInput');
+      const errorEl = document.getElementById('payPhoneError');
+      const phone = input ? input.value.trim() : '';
+      if (phone.length < 9) {
+        if (errorEl) errorEl.textContent = 'Enter a valid mobile money number';
+        return;
+      }
+      this.render('processing');
+      try {
+        const initiatePayment = functions.httpsCallable('initiatePayment');
+        const res = await initiatePayment({
+          houseId: this.currentHouseId,
+          houseName: this.currentHouseName,
+          phoneNumber: phone,
         });
+        const paymentId = res.data.paymentId;
+        this.unsub = db.collection('payments').doc(paymentId).onSnapshot((snap) => {
+          const data = snap.data();
+          if (!data) return;
+          if (data.status === 'Successful') {
+            this.unlock(this.currentHouseId);
+            this.render('success');
+            setTimeout(() => {
+              this.close();
+              if (this.pendingTarget) window.open(this.pendingTarget, '_blank');
+            }, 1100);
+          } else if (data.status === 'Failed') {
+            this.render('failed');
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        this.render('failed');
+      }
+    },
+    render(step) {
+      const modal = document.getElementById('paymentModal');
+      const houseName = escapeHtml(this.currentHouseName || '');
+      if (step === 'intro') {
+        modal.innerHTML = `
+          <h3>Unlock Contact & Location</h3>
+          <p>To view <strong>${houseName}</strong>'s WhatsApp, phone number and exact location, there's a one-time K${ACCESS_FEE} access fee, paid securely via mobile money.</p>
+          <div class="payment-note">Once you pay, this house stays unlocked on this device — you won't be asked again.</div>
+          <div onclick="PaymentGate.contactSupport('House full or need a refund')" class="payment-support-link">House already full, or paid and need a refund? Message us on WhatsApp</div>
+          <div class="payment-actions">
+            <button class="btn-secondary" onclick="PaymentGate.close()">Cancel</button>
+            <button class="btn-primary" onclick="PaymentGate.render('enterNumber')">Pay K${ACCESS_FEE}</button>
+          </div>
+        `;
+      } else if (step === 'enterNumber') {
+        modal.innerHTML = `
+          <h3>Enter Mobile Money Number</h3>
+          <p>Enter the mobile money number to pay K${ACCESS_FEE} from:</p>
+          <input type="tel" id="payPhoneInput" class="payment-input" placeholder="e.g. 0977123456">
+          <div class="payment-error" id="payPhoneError"></div>
+          <div class="payment-actions">
+            <button class="btn-secondary" onclick="PaymentGate.close()">Cancel</button>
+            <button class="btn-primary" onclick="PaymentGate.submit()">Pay Now</button>
+          </div>
+        `;
+      } else if (step === 'processing') {
+        modal.innerHTML = `
+          <div class="payment-center">
+            <div class="spinner"></div>
+            <p>Check your phone and approve the mobile money prompt...</p>
+          </div>
+        `;
+      } else if (step === 'success') {
+        modal.innerHTML = `
+          <div class="payment-center">
+            <div style="font-size:40px;">✅</div>
+            <p>Payment confirmed! Unlocking contact details...</p>
+          </div>
+        `;
+      } else if (step === 'failed') {
+        modal.innerHTML = `
+          <h3>Payment Not Completed</h3>
+          <p>We couldn't confirm this payment. Please try again, or reach out if you were charged.</p>
+          <div onclick="PaymentGate.contactSupport('Payment issue')" class="payment-support-link">Need help? Message us on WhatsApp</div>
+          <div class="payment-actions">
+            <button class="btn-secondary" onclick="PaymentGate.close()">Close</button>
+            <button class="btn-primary green" onclick="PaymentGate.render('enterNumber')">Try Again</button>
+          </div>
+        `;
+      }
+    }
+  };
 
-        function filterListings() {
-            let input = document.getElementById('searchInput').value.toLowerCase();
-            let cards = document.getElementsByClassName('listing-card');
-            for (let i = 0; i < cards.length; i++) {
-                let searchData = cards[i].getAttribute('data-search').toLowerCase();
-                cards[i].style.display = searchData.includes(input) ? "" : "none";
-            }
-        }
-    </script>
+  document.addEventListener('click', function (e) {
+    const el = e.target.closest('.protected-action');
+    if (!el) return;
+    e.preventDefault();
+    PaymentGate.require(el.dataset.houseId, el.dataset.houseName, el.dataset.target);
+  });
+</script>
 </body>
 </html>
