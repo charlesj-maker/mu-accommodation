@@ -5,13 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MU Accommodation — Verified Boarding Houses</title>
 
+<!-- Favicon (browser tab icon) -->
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+<!-- Preview image shown when the link is shared or found in search results -->
+<!-- TODO: swap this to your real deployed site URL once it's live -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MU Accommodation">
+<meta property="og:title" content="MU Accommodation — Verified Boarding Houses">
+<meta property="og:description" content="Browse verified boarding houses near Mulungushi University.">
+<meta property="og:image" content="https://muaccommodation.site/og-image.jpg">
+<meta property="og:url" content="https://muaccommodation.site/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MU Accommodation — Verified Boarding Houses">
+<meta name="twitter:description" content="Browse verified boarding houses near Mulungushi University.">
+<meta name="twitter:image" content="https://muaccommodation.site/og-image.jpg">
+<meta name="description" content="Browse verified boarding houses near Mulungushi University.">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-functions-compat.js"></script>
 
 <style>
   :root {
@@ -446,10 +465,10 @@
       <h4>Get the Android App</h4>
       <p>Browse faster and get instant notifications.</p>
     </div>
-    <!-- Replace the id= value below with your actual Play Store package name -->
-    <a href="https://play.google.com/store/apps/details?id=com.muaccommodation.app" class="btn-download-app" target="_blank" rel="noopener">
-      Download on Playstore
-    </a>
+    <!-- Swap this back to a real <a href="...Play Store link..."> once your app is live -->
+    <span class="btn-download-app" style="opacity:0.85; cursor:default;">
+      Coming Soon on Playstore
+    </span>
   </div>
 
   <div class="search-box-wrap">
@@ -485,7 +504,6 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-  const functions = firebase.functions();
 
   const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80";
 
@@ -651,15 +669,16 @@
     dots.forEach((d, i) => d.classList.toggle('active', i === idx));
   }
 
-  // ================= Payment gate (K100 access fee, same as the app) =================
+  // ================= Payment gate (K100 access fee via Lipila Payment Link) =================
   const SUPPORT_WHATSAPP = "260776480862";
   const ACCESS_FEE = "100";
+  // TODO: replace with your real Lipila Payment Link once created in the Lipila dashboard.
+  const LIPILA_PAYMENT_LINK = "https://pay.lipila.co.zm/YOUR-PAYMENT-LINK";
 
   const PaymentGate = {
     currentHouseId: null,
     currentHouseName: null,
     pendingTarget: null,
-    unsub: null,
 
     isUnlocked(houseId) {
       return localStorage.getItem('paid_house_' + houseId) === 'true';
@@ -680,46 +699,42 @@
     },
     close() {
       document.getElementById('paymentOverlay').classList.add('hidden');
-      if (this.unsub) { this.unsub(); this.unsub = null; }
     },
     contactSupport(reason) {
       const msg = `Hi, I need help regarding '${this.currentHouseName}' (ID: ${this.currentHouseId}). Reason: ${reason}`;
       window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
     },
-    async submit() {
-      const input = document.getElementById('payPhoneInput');
+    payNow() {
+      window.open(LIPILA_PAYMENT_LINK, '_blank');
+      this.render('confirmPayment');
+    },
+    async confirmPaid() {
+      const phoneInput = document.getElementById('payPhoneInput');
+      const refInput = document.getElementById('payRefInput');
       const errorEl = document.getElementById('payPhoneError');
-      const phone = input ? input.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
       if (phone.length < 9) {
         if (errorEl) errorEl.textContent = 'Enter a valid mobile money number';
         return;
       }
-      this.render('processing');
+      this.render('submitting');
       try {
-        const initiatePayment = functions.httpsCallable('initiatePayment');
-        const res = await initiatePayment({
+        await db.collection('payment_claims').add({
           houseId: this.currentHouseId,
           houseName: this.currentHouseName,
           phoneNumber: phone,
+          reference: refInput ? refInput.value.trim() : '',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
-        const paymentId = res.data.paymentId;
-        this.unsub = db.collection('payments').doc(paymentId).onSnapshot((snap) => {
-          const data = snap.data();
-          if (!data) return;
-          if (data.status === 'Successful') {
-            this.unlock(this.currentHouseId);
-            this.render('success');
-            setTimeout(() => {
-              this.close();
-              if (this.pendingTarget) window.open(this.pendingTarget, '_blank');
-            }, 1100);
-          } else if (data.status === 'Failed') {
-            this.render('failed');
-          }
-        });
+        this.unlock(this.currentHouseId);
+        this.render('success');
+        setTimeout(() => {
+          this.close();
+          if (this.pendingTarget) window.open(this.pendingTarget, '_blank');
+        }, 1100);
       } catch (e) {
         console.error(e);
-        this.render('failed');
+        this.render('error');
       }
     },
     render(step) {
@@ -728,47 +743,49 @@
       if (step === 'intro') {
         modal.innerHTML = `
           <h3>Unlock Contact & Location</h3>
-          <p>To view <strong>${houseName}</strong>'s WhatsApp, phone number and exact location, there's a one-time K${ACCESS_FEE} access fee, paid securely via mobile money.</p>
-          <div class="payment-note">Once you pay, this house stays unlocked on this device — you won't be asked again.</div>
+          <p>To view <strong>${houseName}</strong>'s WhatsApp, phone number and exact location, there's a one-time K${ACCESS_FEE} access fee, paid via mobile money.</p>
+          <div class="payment-note">Tap "Pay K${ACCESS_FEE}" to pay, then come back here and confirm — this house will then stay unlocked on this device.</div>
           <div onclick="PaymentGate.contactSupport('House full or need a refund')" class="payment-support-link">House already full, or paid and need a refund? Message us on WhatsApp</div>
           <div class="payment-actions">
             <button class="btn-secondary" onclick="PaymentGate.close()">Cancel</button>
-            <button class="btn-primary" onclick="PaymentGate.render('enterNumber')">Pay K${ACCESS_FEE}</button>
+            <button class="btn-primary" onclick="PaymentGate.payNow()">Pay K${ACCESS_FEE}</button>
           </div>
         `;
-      } else if (step === 'enterNumber') {
+      } else if (step === 'confirmPayment') {
         modal.innerHTML = `
-          <h3>Enter Mobile Money Number</h3>
-          <p>Enter the mobile money number to pay K${ACCESS_FEE} from:</p>
-          <input type="tel" id="payPhoneInput" class="payment-input" placeholder="e.g. 0977123456">
+          <h3>Confirm Your Payment</h3>
+          <p>Once your mobile money payment has gone through, confirm it below:</p>
+          <input type="tel" id="payPhoneInput" class="payment-input" placeholder="Mobile money number used, e.g. 0977123456">
           <div class="payment-error" id="payPhoneError"></div>
+          <input type="text" id="payRefInput" class="payment-input" placeholder="Reference / receipt number (optional)">
+          <div onclick="PaymentGate.contactSupport('Need help completing payment')" class="payment-support-link">Haven't paid yet, or having trouble? Message us on WhatsApp</div>
           <div class="payment-actions">
             <button class="btn-secondary" onclick="PaymentGate.close()">Cancel</button>
-            <button class="btn-primary" onclick="PaymentGate.submit()">Pay Now</button>
+            <button class="btn-primary" onclick="PaymentGate.confirmPaid()">I've Paid — Unlock</button>
           </div>
         `;
-      } else if (step === 'processing') {
+      } else if (step === 'submitting') {
         modal.innerHTML = `
           <div class="payment-center">
             <div class="spinner"></div>
-            <p>Check your phone and approve the mobile money prompt...</p>
+            <p>Saving your confirmation...</p>
           </div>
         `;
       } else if (step === 'success') {
         modal.innerHTML = `
           <div class="payment-center">
             <div style="font-size:40px;">✅</div>
-            <p>Payment confirmed! Unlocking contact details...</p>
+            <p>Thanks! Unlocking contact details...</p>
           </div>
         `;
-      } else if (step === 'failed') {
+      } else if (step === 'error') {
         modal.innerHTML = `
-          <h3>Payment Not Completed</h3>
-          <p>We couldn't confirm this payment. Please try again, or reach out if you were charged.</p>
-          <div onclick="PaymentGate.contactSupport('Payment issue')" class="payment-support-link">Need help? Message us on WhatsApp</div>
+          <h3>Something Went Wrong</h3>
+          <p>We couldn't save your confirmation. Please check your connection and try again.</p>
+          <div onclick="PaymentGate.contactSupport('Payment confirmation issue')" class="payment-support-link">Need help? Message us on WhatsApp</div>
           <div class="payment-actions">
             <button class="btn-secondary" onclick="PaymentGate.close()">Close</button>
-            <button class="btn-primary green" onclick="PaymentGate.render('enterNumber')">Try Again</button>
+            <button class="btn-primary green" onclick="PaymentGate.confirmPaid()">Try Again</button>
           </div>
         `;
       }
