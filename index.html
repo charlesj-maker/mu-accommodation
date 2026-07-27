@@ -31,6 +31,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 <style>
   :root {
@@ -347,6 +348,14 @@
     100% { background-position: 0 50%; }
   }
 
+  .listing-info {
+    padding: 12px 16px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--border);
+  }
+
   .empty-state, .loading-text {
     text-align: center;
     color: var(--ink-soft);
@@ -361,6 +370,75 @@
     color: var(--ink-soft);
   }
   .site-footer a { color: var(--brand-green); font-weight: 600; text-decoration: none; }
+
+  .hidden { display: none !important; }
+
+  /* ---------- Auth ---------- */
+  .app-bar .user-chip {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    opacity: 0.95;
+    max-width: 45%;
+  }
+  .app-bar .user-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .app-bar .user-chip button {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .auth-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 30px 26px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .auth-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(120deg, var(--brand-blue-dark), var(--brand-blue));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px auto;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .auth-card h2 { margin: 0 0 4px 0; font-size: 19px; }
+  .auth-subtitle { font-size: 13px; color: var(--ink-soft); margin: 0 0 18px 0; }
+  .auth-card .payment-input { text-align: left; }
+  .auth-toggle {
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .auth-toggle strong { color: var(--brand-blue); }
 
   /* ---------- Payment gate modal ---------- */
   .overlay {
@@ -456,9 +534,26 @@
     <strong>MU Accommodation</strong>
     <span>Verified boarding house listings</span>
   </div>
+  <div class="user-chip hidden" id="userChip">
+    <span id="userEmailLabel"></span>
+    <button onclick="AuthGate.logout()">Log Out</button>
+  </div>
 </div>
 
-<div class="container">
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">MU</div>
+    <h2>Welcome</h2>
+    <p class="auth-subtitle">Sign in to browse verified boarding houses.</p>
+    <input type="email" id="authEmail" class="payment-input" placeholder="Email address" autocomplete="email">
+    <input type="password" id="authPassword" class="payment-input" placeholder="Password" autocomplete="current-password">
+    <div class="payment-error" id="authError"></div>
+    <button class="btn-primary" style="width:100%;" onclick="AuthGate.submit()" id="authSubmitBtn">Log In</button>
+    <div class="auth-toggle" id="authToggleText" onclick="AuthGate.toggleMode()">Don't have an account? <strong>Create one</strong></div>
+  </div>
+</div>
+
+<div class="container hidden" id="appContent">
 
   <div class="download-banner">
     <div>
@@ -504,6 +599,7 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  const auth = firebase.auth();
 
   const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80";
 
@@ -516,17 +612,98 @@
       .replace(/>/g, '&gt;');
   }
 
-  // ================= Render listings =================
-  db.collection("houses").where("pendingVerification", "==", false).get().then((querySnapshot) => {
-    const wrapper = document.getElementById("listingsWrapper");
-    wrapper.innerHTML = "";
+  // ================= Auth (students log in before browsing) =================
+  const AuthGate = {
+    mode: 'login', // 'login' | 'signup'
+    toggleMode() {
+      this.mode = this.mode === 'login' ? 'signup' : 'login';
+      document.getElementById('authSubmitBtn').textContent = this.mode === 'login' ? 'Log In' : 'Create Account';
+      document.getElementById('authToggleText').innerHTML = this.mode === 'login'
+        ? "Don't have an account? <strong>Create one</strong>"
+        : "Already have an account? <strong>Log in</strong>";
+      document.getElementById('authError').textContent = '';
+    },
+    async submit() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const errorEl = document.getElementById('authError');
+      errorEl.textContent = '';
 
-    if (querySnapshot.empty) {
-      wrapper.innerHTML = "<div class='empty-state'>No approved listings available right now. Please check back soon.</div>";
-      return;
+      if (!email || !password) {
+        errorEl.textContent = 'Enter your email and password.';
+        return;
+      }
+      if (password.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters.';
+        return;
+      }
+
+      try {
+        if (this.mode === 'login') {
+          await auth.signInWithEmailAndPassword(email, password);
+        } else {
+          const cred = await auth.createUserWithEmailAndPassword(email, password);
+          await db.collection('users').doc(cred.user.uid).set({
+            email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      } catch (e) {
+        errorEl.textContent = this.friendlyError(e);
+      }
+    },
+    friendlyError(e) {
+      const map = {
+        'auth/user-not-found': 'No account with that email. Try creating one instead.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-credential': 'Incorrect email or password.',
+        'auth/email-already-in-use': 'That email is already registered. Try logging in instead.',
+        'auth/invalid-email': 'Enter a valid email address.',
+        'auth/weak-password': 'Password must be at least 6 characters.',
+      };
+      return map[e.code] || 'Something went wrong. Please try again.';
+    },
+    logout() {
+      auth.signOut();
+    },
+  };
+
+  let listingsUnsub = null;
+
+  auth.onAuthStateChanged((user) => {
+    const authScreen = document.getElementById('authScreen');
+    const appContent = document.getElementById('appContent');
+    const userChip = document.getElementById('userChip');
+
+    if (user) {
+      authScreen.classList.add('hidden');
+      appContent.classList.remove('hidden');
+      userChip.classList.remove('hidden');
+      document.getElementById('userEmailLabel').textContent = user.email || '';
+      if (!listingsUnsub) startListeningToListings();
+    } else {
+      authScreen.classList.remove('hidden');
+      appContent.classList.add('hidden');
+      userChip.classList.add('hidden');
+      document.getElementById('authEmail').value = '';
+      document.getElementById('authPassword').value = '';
+      if (listingsUnsub) { listingsUnsub(); listingsUnsub = null; }
     }
+  });
 
-    querySnapshot.forEach((doc) => {
+  // ================= Render listings (live — updates automatically, no page refresh needed) =================
+  function startListeningToListings() {
+    listingsUnsub = db.collection("houses").where("pendingVerification", "==", false)
+      .onSnapshot((querySnapshot) => {
+        const wrapper = document.getElementById("listingsWrapper");
+        wrapper.innerHTML = "";
+
+        if (querySnapshot.empty) {
+          wrapper.innerHTML = "<div class='empty-state'>No approved listings available right now. Please check back soon.</div>";
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
       const data = doc.data();
       const houseId = doc.id;
 
@@ -537,6 +714,7 @@
       const rooms = data.roomsAvailable || "Available";
       const phone = data.phone || "";
       const whatsapp = data.whatsapp || "";
+      const info = data.info || "";
 
       // Location pin: the app stores latitude/longitude as top-level numeric fields,
       // NOT nested inside "location" (location is just the text address).
@@ -617,15 +795,18 @@
             <span class="photo-id-tag">📷 ${imagesArray.length} Photo${imagesArray.length > 1 ? 's' : ''}</span>
             ${navHtml}
           </div>
+
+          ${info ? `<div class="listing-info">${escapeHtml(info)}</div>` : ''}
         </div>
       `;
       wrapper.insertAdjacentHTML('beforeend', cardHTML);
-    });
-  }).catch((error) => {
-    console.error("Error getting documents: ", error);
-    document.getElementById("listingsWrapper").innerHTML =
-      "<div class='empty-state'>Couldn't load listings right now. Please check your connection and try again.</div>";
-  });
+        });
+      }, (error) => {
+        console.error("Error getting documents: ", error);
+        document.getElementById("listingsWrapper").innerHTML =
+          "<div class='empty-state'>Couldn't load listings right now. Please check your connection and try again.</div>";
+      });
+  }
 
   function filterListings() {
     const input = document.getElementById('searchInput').value.toLowerCase();
@@ -669,16 +850,46 @@
     dots.forEach((d, i) => d.classList.toggle('active', i === idx));
   }
 
-  // ================= Payment gate (K100 access fee via Lipila Payment Link) =================
+  // ================= Payment gate (K100 access fee, auto-confirmed via SMS forwarder) =================
   const SUPPORT_WHATSAPP = "260776480862";
-  const ACCESS_FEE = "100";
-  // TODO: replace with your real Lipila Payment Link once created in the Lipila dashboard.
-  const LIPILA_PAYMENT_LINK = "https://pay.lipila.co.zm/YOUR-PAYMENT-LINK";
+  const ACCESS_FEE = 100;
+
+  // TODO: confirm these are the correct numbers/name for the dedicated
+  // Mobile Money phone before going live.
+  const OWNER_NAME = "Charles Makwembo";
+  const AIRTEL_RECEIVE_NUMBER = "0763681498";
+  const MTN_RECEIVE_NUMBER = "0776480862";
+
+  // Normalizes any Zambian mobile number format (0779935760, 779935760,
+  // 260779935760) down to a bare 9-digit form, so it matches exactly
+  // however the SMS webhook parses the number from the payment SMS.
+  function normalizePhone(raw) {
+    if (!raw) return '';
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('260')) return digits.slice(3);
+    if (digits.length === 10 && digits.startsWith('0')) return digits.slice(1);
+    if (digits.length === 9) return digits;
+    return digits;
+  }
+
+  // A random ID for this browser/device, so payment records can be tied
+  // back to a visitor even without a login system. Not used for matching
+  // (matching happens on phone/name/amount) — just for your own records.
+  function getDeviceId() {
+    let id = localStorage.getItem('device_id');
+    if (!id) {
+      id = 'web_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('device_id', id);
+    }
+    return id;
+  }
 
   const PaymentGate = {
     currentHouseId: null,
     currentHouseName: null,
     pendingTarget: null,
+    provider: null, // 'Airtel' | 'MTN'
+    unsub: null,
 
     isUnlocked(houseId) {
       return localStorage.getItem('paid_house_' + houseId) === 'true';
@@ -694,44 +905,71 @@
       this.currentHouseId = houseId;
       this.currentHouseName = houseName;
       this.pendingTarget = target;
-      this.render('intro');
+      this.provider = null;
+      this.render('chooseProvider');
       document.getElementById('paymentOverlay').classList.remove('hidden');
     },
     close() {
       document.getElementById('paymentOverlay').classList.add('hidden');
+      if (this.unsub) { this.unsub(); this.unsub = null; }
     },
     contactSupport(reason) {
       const msg = `Hi, I need help regarding '${this.currentHouseName}' (ID: ${this.currentHouseId}). Reason: ${reason}`;
       window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
     },
-    payNow() {
-      window.open(LIPILA_PAYMENT_LINK, '_blank');
-      this.render('confirmPayment');
+    chooseProvider(provider) {
+      this.provider = provider;
+      this.render('enterDetails');
     },
-    async confirmPaid() {
+    async submitDetails() {
       const phoneInput = document.getElementById('payPhoneInput');
-      const refInput = document.getElementById('payRefInput');
+      const nameInput = document.getElementById('payNameInput');
       const errorEl = document.getElementById('payPhoneError');
       const phone = phoneInput ? phoneInput.value.trim() : '';
+      const accountName = nameInput ? nameInput.value.trim() : '';
+
       if (phone.length < 9) {
         if (errorEl) errorEl.textContent = 'Enter a valid mobile money number';
         return;
       }
+      if (this.provider === 'MTN' && accountName.length < 2) {
+        if (errorEl) errorEl.textContent = 'Enter the name registered on that MTN number';
+        return;
+      }
+
       this.render('submitting');
       try {
-        await db.collection('payment_claims').add({
+        const docRef = await db.collection('pendingPayments').add({
+          deviceId: getDeviceId(),
+          uid: auth.currentUser ? auth.currentUser.uid : null,
+          userEmail: auth.currentUser ? auth.currentUser.email : null,
           houseId: this.currentHouseId,
           houseName: this.currentHouseName,
-          phoneNumber: phone,
-          reference: refInput ? refInput.value.trim() : '',
+          provider: this.provider,
+          phone: normalizePhone(phone),
+          accountName: this.provider === 'MTN' ? accountName.toUpperCase().trim() : null,
+          amount: ACCESS_FEE,
+          status: 'Pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
-        this.unlock(this.currentHouseId);
-        this.render('success');
-        setTimeout(() => {
-          this.close();
-          if (this.pendingTarget) window.open(this.pendingTarget, '_blank');
-        }, 1100);
+
+        this.paymentId = docRef.id;
+        this.render('instructions');
+
+        this.unsub = db.collection('pendingPayments').doc(docRef.id).onSnapshot((snap) => {
+          const data = snap.data();
+          if (!data) return;
+          if (data.status === 'Paid') {
+            this.unlock(this.currentHouseId);
+            this.render('success');
+            setTimeout(() => {
+              this.close();
+              if (this.pendingTarget) window.open(this.pendingTarget, '_blank');
+            }, 1100);
+          } else if (data.status === 'Failed') {
+            this.render('error');
+          }
+        });
       } catch (e) {
         console.error(e);
         this.render('error');
@@ -740,52 +978,66 @@
     render(step) {
       const modal = document.getElementById('paymentModal');
       const houseName = escapeHtml(this.currentHouseName || '');
-      if (step === 'intro') {
+      const receiveNumber = this.provider === 'MTN' ? MTN_RECEIVE_NUMBER : AIRTEL_RECEIVE_NUMBER;
+
+      if (step === 'chooseProvider') {
         modal.innerHTML = `
-          <h3>Unlock Contact & Location</h3>
-          <p>To view <strong>${houseName}</strong>'s WhatsApp, phone number and exact location, there's a one-time K${ACCESS_FEE} access fee, paid via mobile money.</p>
-          <div class="payment-note">Tap "Pay K${ACCESS_FEE}" to pay, then come back here and confirm — this house will then stay unlocked on this device.</div>
-          <div onclick="PaymentGate.contactSupport('House full or need a refund')" class="payment-support-link">House already full, or paid and need a refund? Message us on WhatsApp</div>
+          <h3>Unlock Contact & Location — K${ACCESS_FEE}</h3>
+          <p>To view <strong>${houseName}</strong>'s WhatsApp, phone number and exact location, pay a one-time K${ACCESS_FEE} access fee. Choose how you'll pay:</p>
           <div class="payment-actions">
-            <button class="btn-secondary" onclick="PaymentGate.close()">Cancel</button>
-            <button class="btn-primary" onclick="PaymentGate.payNow()">Pay K${ACCESS_FEE}</button>
+            <button class="btn-primary" style="background:#ED1C24;" onclick="PaymentGate.chooseProvider('Airtel')">Airtel Money</button>
+            <button class="btn-primary" style="background:#FFCC08; color:#1A2233;" onclick="PaymentGate.chooseProvider('MTN')">MTN MoMo</button>
           </div>
+          <div style="margin-top:12px;" onclick="PaymentGate.contactSupport('House full or need a refund')" class="payment-support-link">House already full, or paid and need a refund? Message us on WhatsApp</div>
         `;
-      } else if (step === 'confirmPayment') {
+      } else if (step === 'enterDetails') {
         modal.innerHTML = `
-          <h3>Confirm Your Payment</h3>
-          <p>Once your mobile money payment has gone through, confirm it below:</p>
-          <input type="tel" id="payPhoneInput" class="payment-input" placeholder="Mobile money number used, e.g. 0977123456">
+          <h3>${this.provider} Details</h3>
+          <p>Enter the number you'll pay K${ACCESS_FEE} from:</p>
+          <input type="tel" id="payPhoneInput" class="payment-input" placeholder="e.g. 0977123456">
+          ${this.provider === 'MTN' ? `<input type="text" id="payNameInput" class="payment-input" placeholder="Account name registered on that MTN number">` : ''}
           <div class="payment-error" id="payPhoneError"></div>
-          <input type="text" id="payRefInput" class="payment-input" placeholder="Reference / receipt number (optional)">
-          <div onclick="PaymentGate.contactSupport('Need help completing payment')" class="payment-support-link">Haven't paid yet, or having trouble? Message us on WhatsApp</div>
           <div class="payment-actions">
-            <button class="btn-secondary" onclick="PaymentGate.close()">Cancel</button>
-            <button class="btn-primary" onclick="PaymentGate.confirmPaid()">I've Paid — Unlock</button>
+            <button class="btn-secondary" onclick="PaymentGate.render('chooseProvider')">Back</button>
+            <button class="btn-primary" onclick="PaymentGate.submitDetails()">Continue</button>
           </div>
         `;
       } else if (step === 'submitting') {
         modal.innerHTML = `
           <div class="payment-center">
             <div class="spinner"></div>
-            <p>Saving your confirmation...</p>
+            <p>Setting things up...</p>
           </div>
+        `;
+      } else if (step === 'instructions') {
+        modal.innerHTML = `
+          <h3>Send K${ACCESS_FEE}</h3>
+          <p>Send K${ACCESS_FEE} via <strong>${this.provider}</strong> to:</p>
+          <div class="payment-note" style="font-size:16px; text-align:center; font-weight:700;">
+            ${receiveNumber}<br>
+            <span style="font-size:12.5px; font-weight:500;">Owner: ${OWNER_NAME}</span>
+          </div>
+          <div class="payment-center" style="padding-top:6px;">
+            <div class="spinner"></div>
+            <p>After you pay, this unlocks automatically — usually within a minute or two. Keep this open.</p>
+          </div>
+          <div onclick="PaymentGate.contactSupport('Payment not confirming automatically')" class="payment-support-link">Paid but it's taking a while? Message us on WhatsApp</div>
         `;
       } else if (step === 'success') {
         modal.innerHTML = `
           <div class="payment-center">
             <div style="font-size:40px;">✅</div>
-            <p>Thanks! Unlocking contact details...</p>
+            <p>Payment confirmed! Unlocking contact details...</p>
           </div>
         `;
       } else if (step === 'error') {
         modal.innerHTML = `
           <h3>Something Went Wrong</h3>
-          <p>We couldn't save your confirmation. Please check your connection and try again.</p>
+          <p>We couldn't process this. Please check your connection and try again, or reach out if you've already paid.</p>
           <div onclick="PaymentGate.contactSupport('Payment confirmation issue')" class="payment-support-link">Need help? Message us on WhatsApp</div>
           <div class="payment-actions">
             <button class="btn-secondary" onclick="PaymentGate.close()">Close</button>
-            <button class="btn-primary green" onclick="PaymentGate.confirmPaid()">Try Again</button>
+            <button class="btn-primary green" onclick="PaymentGate.render('chooseProvider')">Try Again</button>
           </div>
         `;
       }
