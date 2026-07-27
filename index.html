@@ -670,6 +670,24 @@
 
   let listingsUnsub = null;
 
+  // Catches payments that finished AFTER the person left the "waiting" popup
+  // (closed the tab, switched apps to pay, etc.) — runs every time they
+  // log in or reload, so nothing gets stuck unconfirmed on-screen forever.
+  async function syncAlreadyPaidPayments(uid) {
+    try {
+      const snap = await db.collection('pendingPayments')
+        .where('uid', '==', uid)
+        .where('status', '==', 'Paid')
+        .get();
+      snap.forEach((doc) => {
+        const houseId = doc.data().houseId;
+        if (houseId) PaymentGate.unlock(houseId);
+      });
+    } catch (e) {
+      console.error('Could not sync paid payments:', e);
+    }
+  }
+
   auth.onAuthStateChanged((user) => {
     const authScreen = document.getElementById('authScreen');
     const appContent = document.getElementById('appContent');
@@ -680,7 +698,9 @@
       appContent.classList.remove('hidden');
       userChip.classList.remove('hidden');
       document.getElementById('userEmailLabel').textContent = user.email || '';
-      if (!listingsUnsub) startListeningToListings();
+      syncAlreadyPaidPayments(user.uid).then(() => {
+        if (!listingsUnsub) startListeningToListings();
+      });
     } else {
       authScreen.classList.remove('hidden');
       appContent.classList.add('hidden');
