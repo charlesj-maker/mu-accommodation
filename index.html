@@ -906,6 +906,8 @@
       this.currentHouseName = houseName;
       this.pendingTarget = target;
       this.provider = null;
+      this.payerPhone = null;
+      this.payerName = null;
       this.render('chooseProvider');
       document.getElementById('paymentOverlay').classList.remove('hidden');
     },
@@ -936,6 +938,9 @@
         if (errorEl) errorEl.textContent = 'Enter the name registered on that MTN number';
         return;
       }
+
+      this.payerPhone = phone;
+      this.payerName = accountName;
 
       this.render('submitting');
       try {
@@ -1010,18 +1015,28 @@
           </div>
         `;
       } else if (step === 'instructions') {
+        const payerLine = this.provider === 'MTN' && this.payerName
+          ? `${escapeHtml(this.payerPhone)} (${escapeHtml(this.payerName)})`
+          : escapeHtml(this.payerPhone || '');
         modal.innerHTML = `
-          <h3>Send K${ACCESS_FEE}</h3>
-          <p>Send K${ACCESS_FEE} via <strong>${this.provider}</strong> to:</p>
-          <div class="payment-note" style="font-size:16px; text-align:center; font-weight:700;">
+          <h3>Send K${ACCESS_FEE} Now</h3>
+          <ol style="padding-left:18px; margin:0 0 14px 0; font-size:13.5px; line-height:1.7;">
+            <li>Open your <strong>${this.provider}</strong> mobile money app (or dial the USSD code)</li>
+            <li>Send <strong>K${ACCESS_FEE}</strong> to my account below</li>
+            <li>Come back to this page — it updates on its own once payment is received</li>
+          </ol>
+          <div class="payment-note" style="font-size:17px; text-align:center; font-weight:700;">
             ${receiveNumber}<br>
             <span style="font-size:12.5px; font-weight:500;">Owner: ${OWNER_NAME}</span>
           </div>
-          <div class="payment-center" style="padding-top:6px;">
+          <p style="font-size:12px; color:var(--ink-soft); text-align:center; margin-top:8px;">
+            Paying from: ${payerLine}
+          </p>
+          <div class="payment-center" style="padding-top:10px;">
             <div class="spinner"></div>
-            <p>After you pay, this unlocks automatically — usually within a minute or two. Keep this open.</p>
+            <p><strong>Waiting for your payment</strong> — this isn't processing anything yet.<br>Go send the money now; this page will update itself within a minute or two once it arrives. Don't close this tab.</p>
           </div>
-          <div onclick="PaymentGate.contactSupport('Payment not confirming automatically')" class="payment-support-link">Paid but it's taking a while? Message us on WhatsApp</div>
+          <div onclick="PaymentGate.contactSupport('Payment not confirming automatically')" class="payment-support-link">Already paid but it's taking a while? Message us on WhatsApp</div>
         `;
       } else if (step === 'success') {
         modal.innerHTML = `
