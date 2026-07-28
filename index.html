@@ -439,37 +439,6 @@
     cursor: pointer;
   }
   .auth-toggle strong { color: var(--brand-blue); }
-  .auth-method-toggle {
-    display: flex;
-    background: var(--bg);
-    border-radius: var(--radius-sm);
-    padding: 4px;
-    margin-bottom: 16px;
-    gap: 4px;
-  }
-  .auth-method-btn {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    background: transparent;
-    border-radius: 7px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .auth-method-btn.active {
-    background: white;
-    color: var(--brand-blue-dark);
-    box-shadow: var(--shadow-soft);
-  }
-  .auth-back-link {
-    margin-top: 10px;
-    font-size: 12.5px;
-    color: var(--ink-soft);
-    cursor: pointer;
-  }
   .verify-banner {
     background: #FFF7E6;
     border: 1px solid #FDE9C2;
@@ -600,14 +569,13 @@
     <div class="auth-logo">MU</div>
     <h2>Welcome</h2>
     <p class="auth-subtitle">Sign in to browse verified boarding houses.</p>
-    <div class="auth-method-toggle">
-      <button class="auth-method-btn" id="authMethodEmailBtn" onclick="AuthGate.switchMethod('email')">Email</button>
-      <button class="auth-method-btn" id="authMethodPhoneBtn" onclick="AuthGate.switchMethod('phone')">Phone</button>
-    </div>
-    <div id="authFormArea"></div>
+    <input type="email" id="authEmail" class="payment-input" placeholder="Email address" autocomplete="email">
+    <input type="password" id="authPassword" class="payment-input" placeholder="Password" autocomplete="current-password">
+    <div class="payment-error" id="authError"></div>
+    <button class="btn-primary" style="width:100%;" onclick="AuthGate.submitEmail()" id="authSubmitBtn">Log In</button>
+    <div class="auth-toggle" id="authToggleText" onclick="AuthGate.toggleMode()">Don't have an account? <strong>Create one</strong></div>
   </div>
 </div>
-<div id="recaptcha-container"></div>
 
 <div class="container hidden" id="appContent">
   <div class="verify-banner hidden" id="verifyBanner">
@@ -677,57 +645,15 @@
 
   // ================= Auth (students log in before browsing) =================
   const AuthGate = {
-    method: 'email', // 'email' | 'phone'
-    mode: 'login', // 'login' | 'signup' (email only)
-    phoneStep: 'enterPhone', // 'enterPhone' | 'enterCode'
-    confirmationResult: null,
-    recaptchaVerifier: null,
+    mode: 'login', // 'login' | 'signup'
 
-    switchMethod(method) {
-      this.method = method;
-      this.mode = 'login';
-      this.phoneStep = 'enterPhone';
-      document.getElementById('authMethodEmailBtn').classList.toggle('active', method === 'email');
-      document.getElementById('authMethodPhoneBtn').classList.toggle('active', method === 'phone');
-      this.render();
-    },
     toggleMode() {
       this.mode = this.mode === 'login' ? 'signup' : 'login';
-      this.render();
-    },
-    render() {
-      const area = document.getElementById('authFormArea');
-      if (this.method === 'email') {
-        area.innerHTML = `
-          <input type="email" id="authEmail" class="payment-input" placeholder="Email address" autocomplete="email">
-          <input type="password" id="authPassword" class="payment-input" placeholder="Password" autocomplete="current-password">
-          <div class="payment-error" id="authError"></div>
-          <button class="btn-primary" style="width:100%;" onclick="AuthGate.submitEmail()">${this.mode === 'login' ? 'Log In' : 'Create Account'}</button>
-          <div class="auth-toggle" onclick="AuthGate.toggleMode()">${this.mode === 'login' ? "Don't have an account? <strong>Create one</strong>" : "Already have an account? <strong>Log in</strong>"}</div>
-        `;
-      } else if (this.phoneStep === 'enterPhone') {
-        area.innerHTML = `
-          <input type="tel" id="authPhone" class="payment-input" placeholder="e.g. 0977123456" autocomplete="tel">
-          <div class="payment-error" id="authError"></div>
-          <button class="btn-primary" style="width:100%;" onclick="AuthGate.sendPhoneCode()">Send Code</button>
-        `;
-      } else {
-        area.innerHTML = `
-          <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 10px 0;">Enter the code we texted to ${escapeHtml(this._pendingPhoneDisplay || 'your phone')}:</p>
-          <input type="tel" id="authCode" class="payment-input" placeholder="6-digit code" autocomplete="one-time-code">
-          <div class="payment-error" id="authError"></div>
-          <button class="btn-primary" style="width:100%;" onclick="AuthGate.verifyPhoneCode()">Verify & Continue</button>
-          <div class="auth-back-link" onclick="AuthGate.backToPhoneEntry()">&larr; Use a different number</div>
-        `;
-      }
-    },
-
-    normalizeZambianPhone(raw) {
-      const digits = raw.replace(/\D/g, '');
-      if (digits.startsWith('260') && digits.length === 12) return '+' + digits;
-      if (digits.startsWith('0') && digits.length === 10) return '+260' + digits.slice(1);
-      if (digits.length === 9) return '+260' + digits;
-      return null;
+      document.getElementById('authSubmitBtn').textContent = this.mode === 'login' ? 'Log In' : 'Create Account';
+      document.getElementById('authToggleText').innerHTML = this.mode === 'login'
+        ? "Don't have an account? <strong>Create one</strong>"
+        : "Already have an account? <strong>Log in</strong>";
+      document.getElementById('authError').textContent = '';
     },
 
     async submitEmail() {
@@ -761,66 +687,6 @@
       }
     },
 
-    async sendPhoneCode() {
-      const raw = document.getElementById('authPhone').value.trim();
-      const errorEl = document.getElementById('authError');
-      errorEl.textContent = '';
-
-      const phone = this.normalizeZambianPhone(raw);
-      if (!phone) {
-        errorEl.textContent = 'Enter a valid Zambian mobile number.';
-        return;
-      }
-
-      try {
-        if (!this.recaptchaVerifier) {
-          this.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
-        }
-        this.confirmationResult = await auth.signInWithPhoneNumber(phone, this.recaptchaVerifier);
-        this._pendingPhoneDisplay = phone;
-        this.phoneStep = 'enterCode';
-        this.render();
-      } catch (e) {
-        errorEl.textContent = this.friendlyError(e);
-        if (this.recaptchaVerifier) {
-          this.recaptchaVerifier.render().then((widgetId) => {
-            if (window.grecaptcha) window.grecaptcha.reset(widgetId);
-          });
-        }
-      }
-    },
-
-    async verifyPhoneCode() {
-      const code = document.getElementById('authCode').value.trim();
-      const errorEl = document.getElementById('authError');
-      errorEl.textContent = '';
-
-      if (!code) {
-        errorEl.textContent = 'Enter the code you received.';
-        return;
-      }
-      if (!this.confirmationResult) {
-        errorEl.textContent = 'Please request a new code.';
-        return;
-      }
-
-      try {
-        const cred = await this.confirmationResult.confirm(code);
-        await db.collection('users').doc(cred.user.uid).set({
-          phone: cred.user.phoneNumber || null,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true });
-      } catch (e) {
-        errorEl.textContent = this.friendlyError(e);
-      }
-    },
-
-    backToPhoneEntry() {
-      this.phoneStep = 'enterPhone';
-      this.confirmationResult = null;
-      this.render();
-    },
-
     friendlyError(e) {
       const map = {
         'auth/user-not-found': 'No account with that email. Try creating one instead.',
@@ -829,10 +695,6 @@
         'auth/email-already-in-use': 'That email is already registered. Try logging in instead.',
         'auth/invalid-email': 'Enter a valid email address.',
         'auth/weak-password': 'Password must be at least 6 characters.',
-        'auth/invalid-phone-number': 'Enter a valid Zambian mobile number.',
-        'auth/invalid-verification-code': 'That code is incorrect. Please try again.',
-        'auth/code-expired': 'That code expired. Request a new one.',
-        'auth/too-many-requests': 'Too many attempts. Please try again later.',
       };
       return map[e.code] || 'Something went wrong. Please try again.';
     },
@@ -845,7 +707,7 @@
       if (auth.currentUser) {
         try {
           await auth.currentUser.sendEmailVerification();
-          alert('Verification email sent — check your inbox.');
+          alert('Verification email sent — check your inbox (and your spam/junk folder).');
         } catch (e) {
           alert('Could not send email right now. Please try again shortly.');
         }
@@ -865,10 +727,6 @@
     const needsVerification = user && user.email && !user.emailVerified;
     banner.classList.toggle('hidden', !needsVerification);
   }
-
-  // Show the email/phone toggle in its default state on first load.
-  document.getElementById('authMethodEmailBtn').classList.add('active');
-  AuthGate.render();
 
   let listingsUnsub = null;
 
@@ -900,7 +758,7 @@
       authScreen.classList.add('hidden');
       appContent.classList.remove('hidden');
       userChip.classList.remove('hidden');
-      document.getElementById('userEmailLabel').textContent = user.email || user.phoneNumber || '';
+      document.getElementById('userEmailLabel').textContent = user.email || '';
       updateVerifyBanner();
       watchMyPayments(user.uid);
       if (!listingsUnsub) startListeningToListings();
@@ -908,9 +766,8 @@
       authScreen.classList.remove('hidden');
       appContent.classList.add('hidden');
       userChip.classList.add('hidden');
-      AuthGate.mode = 'login';
-      AuthGate.phoneStep = 'enterPhone';
-      AuthGate.render();
+      document.getElementById('authEmail').value = '';
+      document.getElementById('authPassword').value = '';
       if (listingsUnsub) { listingsUnsub(); listingsUnsub = null; }
       if (paymentsUnsub) { paymentsUnsub(); paymentsUnsub = null; }
     }
@@ -1080,8 +937,8 @@
   // TODO: confirm these are the correct numbers/name for the dedicated
   // Mobile Money phone before going live.
   const OWNER_NAME = "Charles Makwembo";
-  const AIRTEL_RECEIVE_NUMBER = "0763681498";
-  const MTN_RECEIVE_NUMBER = "0776480862";
+  const AIRTEL_RECEIVE_NUMBER = "0776480862";
+  const MTN_RECEIVE_NUMBER = "0763681498";
 
   // Normalizes any Zambian mobile number format (0779935760, 779935760,
   // 260779935760) down to a bare 9-digit form, so it matches exactly
