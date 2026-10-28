@@ -12,8 +12,11 @@
 </script>
 
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+<!-- Firebase App & Firestore & Auth -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -34,20 +37,26 @@
     --radius-md: 12px;
     --radius-sm: 8px;
     --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+    --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.04);
   }
 
   :root[data-theme="dark"] {
+    --brand-blue: #38BDF8;
+    --brand-blue-dark: #0284C7;
+    --brand-green: #4ADE80;
+    --brand-green-light: #22C55E;
     --bg: #0F172A;
     --card-bg: #1E293B;
     --border: #334155;
     --ink: #F8FAFC;
     --ink-soft: #94A3B8;
+    --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.35);
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
     margin: 0;
     padding: 0;
@@ -55,18 +64,28 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Header Bar */
+  /* Dynamic Hiding Header Bar */
   .app-bar {
-    background: linear-gradient(135deg, var(--brand-blue-dark), var(--brand-blue));
+    background: linear-gradient(135deg, #1565C0, #1E88E5);
     color: white;
-    padding: 14px 16px;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
     position: sticky;
     top: 0;
     z-index: 50;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.25);
+    transition: transform 0.3s ease;
+  }
+  .app-bar.nav-hidden {
+    transform: translateY(-100%);
+  }
+
+  .app-bar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .logo-badge {
     width: 36px;
@@ -78,17 +97,32 @@
     justify-content: center;
     font-weight: 800;
     font-size: 13px;
+    color: white;
   }
-  .header-title { font-weight: 800; font-size: 15px; letter-spacing: 0.5px; }
-  .header-sub { font-size: 11.5px; opacity: 0.85; }
+  .header-title { font-weight: 800; font-size: 15px; letter-spacing: 0.5px; color: white; }
+  .header-sub { font-size: 11px; opacity: 0.85; color: rgba(255,255,255,0.9); }
+
+  .theme-toggle-btn {
+    background: rgba(255,255,255,0.18);
+    border: none;
+    color: white;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
 
   .container {
     max-width: 480px;
     margin: 0 auto;
-    padding: 14px 12px 80px 12px;
+    padding: 12px 12px 85px 12px;
   }
 
-  /* Search & Filters */
+  /* Search & Interactive Filter Chips */
   .search-box-wrap { position: relative; margin-bottom: 10px; }
   .search-box {
     width: 100%;
@@ -100,7 +134,9 @@
     background: var(--card-bg);
     color: var(--ink);
     outline: none;
+    box-shadow: var(--shadow-soft);
   }
+  .search-box:focus { border-color: var(--brand-blue); }
   .search-box-wrap svg {
     position: absolute;
     left: 14px;
@@ -115,7 +151,9 @@
     margin-bottom: 16px;
     overflow-x: auto;
     padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
   }
+  .filters-row::-webkit-scrollbar { display: none; }
   .filter-chip {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -129,21 +167,41 @@
     gap: 6px;
     cursor: pointer;
     white-space: nowrap;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    box-shadow: var(--shadow-soft);
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
+  .filter-chip.active {
+    background: var(--brand-blue);
+    color: white;
+    border-color: var(--brand-blue);
+  }
+  .filter-chip svg { stroke: currentColor; fill: none; flex-shrink: 0; }
 
   /* Listing Card */
   .listing-card {
     background: var(--card-bg);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow-card);
   }
-  .listing-header { padding: 14px 14px 8px 14px; display: flex; justify-content: space-between; align-items: flex-start; }
-  .listing-title { font-size: 16px; font-weight: 700; margin: 0 0 2px 0; }
-  .listing-subtitle { font-size: 12px; color: var(--ink-soft); margin: 0 0 6px 0; display: flex; align-items: center; gap: 4px; }
+  
+  .listing-header {
+    padding: 14px 14px 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .listing-title { font-size: 16px; font-weight: 700; margin: 0 0 2px 0; color: var(--ink); }
+  .listing-subtitle {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin: 0 0 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
   
   .rooms-chip {
     display: inline-flex;
@@ -151,88 +209,133 @@
     gap: 4px;
     font-size: 11px;
     color: #16A34A;
-    background: rgba(22, 163, 74, 0.1);
+    background: rgba(22, 163, 74, 0.12);
+    border: 1px solid rgba(22, 163, 74, 0.25);
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 999px;
   }
-  .price-tag { font-size: 16px; font-weight: 800; color: var(--brand-green); text-align: right; }
+  .price-tag { font-size: 17px; font-weight: 800; color: var(--brand-green); text-align: right; }
   .price-tag small { font-size: 10.5px; font-weight: 500; color: var(--ink-soft); display: block; }
 
-  /* Gallery */
+  /* Fast Hardware-Accelerated Photo Carousel */
   .gallery-wrap { position: relative; background: #000; }
   .listing-photo-container {
     position: relative;
     width: 100%;
-    height: 200px;
+    height: 220px;
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    scroll-behavior: smooth;
+    will-change: scroll-position;
   }
   .listing-photo-container::-webkit-scrollbar { display: none; }
-  .listing-img { width: 100%; height: 200px; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; cursor: zoom-in; }
-  
+  .listing-img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    cursor: zoom-in;
+  }
+
   .listing-id-badge {
     position: absolute;
     top: 10px;
     left: 10px;
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(15, 23, 42, 0.82);
     color: white;
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.5px;
+    backdrop-filter: blur(4px);
+    z-index: 5;
+  }
+  .photo-counter-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.65);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 5;
   }
 
-  /* Action Buttons & Save */
-  .action-row { display: flex; gap: 8px; padding: 6px 14px 14px 14px; }
+  /* Action Buttons & Bookmark Icon */
+  .action-row { display: flex; gap: 8px; padding: 10px 14px 14px 14px; }
   .action-row a {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    padding: 9px 6px;
+    gap: 6px;
+    padding: 10px 6px;
     border-radius: var(--radius-sm);
     font-weight: 600;
     text-decoration: none;
     font-size: 12.5px;
     border: 1px solid transparent;
+    transition: opacity 0.15s ease;
   }
+  .action-row a:active { opacity: 0.8; }
+  
   .btn-whatsapp { background-color: var(--whatsapp); color: white; }
-  .btn-call { background-color: transparent; color: var(--brand-green); border-color: #CDE4D0; }
-  .btn-location { background-color: transparent; color: var(--brand-blue); border-color: #CFE3F7; }
+  .btn-call { background-color: transparent; color: var(--brand-green); border-color: rgba(46, 125, 50, 0.3); }
+  .btn-location { background-color: transparent; color: var(--brand-blue); border-color: rgba(30, 136, 229, 0.3); }
 
-  .save-btn {
+  /* Save Bookmark Button */
+  .save-bookmark-btn {
     background: transparent;
     border: 1px solid var(--border);
     color: var(--ink-soft);
-    padding: 8px 10px;
+    padding: 8px 11px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
   }
-  .save-btn.active { color: #EAB308; border-color: #EAB308; background: rgba(234, 179, 8, 0.1); }
+  .save-bookmark-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .save-bookmark-btn.active {
+    color: #F59E0B;
+    border-color: #F59E0B;
+    background: rgba(245, 158, 11, 0.12);
+  }
+  .save-bookmark-btn.active svg { fill: #F59E0B; }
 
-  /* Amenities & Features */
-  .amenity-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; }
+  /* Amenities & Features Checklist */
+  .amenity-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 4px 14px; }
   .amenity-chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    background: var(--bg);
-    color: var(--ink);
+    gap: 5px;
+    background: rgba(30, 136, 229, 0.08);
+    color: var(--brand-blue);
     font-size: 11px;
-    font-weight: 500;
-    padding: 4px 8px;
+    font-weight: 600;
+    padding: 4px 9px;
     border-radius: 999px;
-    border: 1px solid var(--border);
   }
   .features-list { list-style: none; margin: 0; padding: 0 14px 10px 14px; }
-  .features-list li { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+  .features-list li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .features-list li svg { color: var(--brand-green); flex-shrink: 0; }
 
   /* Bottom Navigation */
   .bottom-nav {
@@ -245,8 +348,9 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 8px 0;
+    padding: 8px 0 10px 0;
     z-index: 100;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
   }
   .nav-item {
     display: flex;
@@ -262,11 +366,12 @@
     border: none;
     width: 25%;
   }
-  .nav-item.active { color: var(--brand-blue); }
-  .nav-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .nav-item.active { color: var(--brand-blue); font-weight: 700; }
+  .nav-item svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .nav-item.active svg { stroke: var(--brand-blue); fill: rgba(30, 136, 229, 0.12); }
 
-  /* Back Button */
-  .page-back-bar { display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 10px; }
+  /* Clean Arrow Back Bar */
+  .page-back-bar { display: flex; align-items: center; gap: 12px; padding: 10px 0 14px 0; }
   .page-back-bar button {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -278,71 +383,177 @@
     justify-content: center;
     cursor: pointer;
     color: var(--ink);
+    box-shadow: var(--shadow-soft);
   }
-  .page-back-bar span { font-weight: 700; font-size: 16px; }
+  .page-back-bar button svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+  .page-back-bar span { font-weight: 700; font-size: 16px; color: var(--ink); }
 
-  /* Auth & Profile */
+  /* Auth & Profile Screens */
   .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .auth-card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 26px 20px; max-width: 360px; width: 100%; border: 1px solid var(--border); text-align: center; box-shadow: var(--shadow-card); }
-  .payment-input { width: 100%; padding: 11px 13px; font-size: 13.5px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; background: var(--bg); color: var(--ink); outline: none; font-family: inherit; }
-  .btn-primary { background: var(--brand-blue); color: white; border: none; padding: 11px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13.5px; cursor: pointer; width: 100%; }
-  
-  .profile-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 6px 14px; margin-bottom: 14px; box-shadow: var(--shadow-card); }
-  .profile-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13.5px; }
+  .auth-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 28px 22px;
+    max-width: 360px;
+    width: 100%;
+    border: 1px solid var(--border);
+    text-align: center;
+    box-shadow: var(--shadow-card);
+  }
+  .auth-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--brand-blue-dark);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px auto;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .payment-input {
+    width: 100%;
+    padding: 11px 13px;
+    font-size: 13.5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    font-family: inherit;
+  }
+  .payment-input:focus { border-color: var(--brand-blue); }
+  .btn-primary {
+    background: var(--brand-blue);
+    color: white;
+    border: none;
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .profile-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 6px 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-card);
+  }
+  .profile-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 13.5px;
+  }
   .profile-row:last-child { border-bottom: none; }
+
+  /* Modals & Overlays */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 16px;
+  }
+  .overlay.hidden { display: none !important; }
+  .modal-box {
+    background: var(--card-bg);
+    color: var(--ink);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+  }
+  .modal-box h3 { margin: 0 0 12px 0; font-size: 16.5px; font-weight: 700; }
 
   .hidden { display: none !important; }
   .empty-state { text-align: center; color: var(--ink-soft); padding: 40px 20px; font-size: 13.5px; }
+
+  /* Lightbox */
+  .lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-overlay.hidden { display: none !important; }
+  .lightbox-img { max-width: 92vw; max-height: 85vh; object-fit: contain; }
 </style>
 </head>
 <body>
 
-<!-- Header -->
+<!-- Sticky Header (Hides on Scroll Down) -->
 <div class="app-bar" id="topAppBar">
-  <div class="logo-badge">MU</div>
-  <div>
-    <div class="header-title">MU-ACCCOMMODATION</div>
-    <div class="header-sub">Listings</div>
+  <div class="app-bar-brand">
+    <div class="logo-badge">MU</div>
+    <div>
+      <div class="header-title">MU-ACCOMMODATION</div>
+      <div class="header-sub">Listings</div>
+    </div>
   </div>
+  <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
 </div>
 
 <!-- Auth Screen -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
-    <h2 id="authHeading" style="margin-top:0;">Welcome</h2>
-    <p class="auth-subtitle" id="authSubheading" style="font-size:13px; color:var(--ink-soft); margin-bottom:16px;">Sign in to browse verified boarding houses.</p>
-    <input type="email" id="authEmail" class="payment-input" placeholder="Email address">
-    <input type="password" id="authPassword" class="payment-input" placeholder="Password">
-    <span style="display:block; text-align:right; font-size:12px; color:var(--brand-blue); margin-bottom:12px; cursor:pointer;" onclick="AuthGate.forgotPassword()">Forgot password?</span>
-    <div id="authError" style="color:red; font-size:12px; margin-bottom:10px;"></div>
-    <button class="btn-primary" onclick="AuthGate.submit()" id="authSubmitBtn">Log In</button>
-    <div style="margin-top:14px; font-size:12.5px; color:var(--ink-soft); cursor:pointer;" onclick="AuthGate.toggleMode()">Don't have an account? <strong style="color:var(--brand-blue);">Create one</strong></div>
+    <div class="auth-logo">MU</div>
+    <h2 id="authHeading" style="margin:0 0 4px 0; font-size:18px;">Welcome Back</h2>
+    <p class="auth-subtitle" id="authSubheading" style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Sign in to browse verified boarding houses.</p>
+    
+    <input type="email" id="authEmail" class="payment-input" placeholder="Email address" autocomplete="email">
+    <input type="password" id="authPassword" class="payment-input" placeholder="Password" autocomplete="current-password">
+    
+    <span style="display:block; text-align:right; font-size:12px; color:var(--brand-blue); margin:-4px 0 12px 0; cursor:pointer; text-decoration:underline;" id="forgotPasswordBtn" onclick="AuthGate.showForgotPassword()">Forgot password?</span>
+    
+    <div id="authError" style="color:#EF4444; font-size:12px; margin-bottom:10px; min-height:14px; text-align:left;"></div>
+    
+    <button class="btn-primary" onclick="AuthGate.submitEmail()" id="authSubmitBtn">Log In</button>
+    <div style="margin-top:14px; font-size:12px; color:var(--ink-soft); cursor:pointer;" id="authToggleText" onclick="AuthGate.toggleMode()">Don't have an account? <strong style="color:var(--brand-blue);">Create one</strong></div>
   </div>
 </div>
 
-<!-- Main Container -->
+<!-- Main Application View -->
 <div class="container hidden" id="appContent">
   
   <!-- Listings View -->
   <div id="listingsView">
     <div class="search-box-wrap">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" class="search-box" placeholder="Search boarding houses, locations..." onkeyup="filterListings()">
+      <input type="text" id="searchInput" class="search-box" placeholder="Search boarding houses, locations..." onkeyup="applyAllFilters()">
     </div>
 
-    <!-- Filter chips row -->
+    <!-- Filter chips row with drop menus -->
     <div class="filters-row">
-      <button class="filter-chip">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-        Price ▾
+      <button class="filter-chip" id="chip-price" onclick="FilterControls.open('price')">
+        <svg width="13" height="13" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        <span id="label-price">Price</span> ▾
       </button>
-      <button class="filter-chip">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        Distance ▾
+      <button class="filter-chip" id="chip-distance" onclick="FilterControls.open('distance')">
+        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="label-distance">Distance</span> ▾
       </button>
-      <button class="filter-chip">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        Amenities ▾
+      <button class="filter-chip" id="chip-amenities" onclick="FilterControls.open('amenities')">
+        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span id="label-amenities">Amenities</span> ▾
       </button>
     </div>
 
@@ -357,7 +568,7 @@
   <!-- Saved View -->
   <div id="savedView" class="hidden"></div>
 
-  <!-- Messages View (Unwired placeholder) -->
+  <!-- Messages View (Placeholder unwired) -->
   <div id="messagesView" class="hidden">
     <div class="empty-state">
       <h3>Messages</h3>
@@ -389,7 +600,23 @@
   </button>
 </div>
 
+<!-- Filter Selector Modal -->
+<div class="overlay hidden" id="filterOverlay" onclick="if(event.target===this) FilterControls.close()">
+  <div class="modal-box" id="filterModalContent"></div>
+</div>
+
+<!-- Account / Password Change Modal -->
+<div class="overlay hidden" id="accountOverlay" onclick="if(event.target===this) AccountMenu.close()">
+  <div class="modal-box" id="accountModal"></div>
+</div>
+
+<!-- Lightbox Modal -->
+<div class="lightbox-overlay hidden" id="lightboxOverlay" onclick="Lightbox.close()">
+  <img class="lightbox-img" id="lightboxImg" src="" alt="Listing photo view">
+</div>
+
 <script>
+  // Firebase Configuration & Initialization
   const firebaseConfig = {
     apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
     authDomain: "university-homes-zambia.firebaseapp.com",
@@ -410,61 +637,234 @@
 
   function navigateTo(route) { location.hash = route; }
 
+  // Dynamic Header Hide/Show on Scroll
+  let lastScrollY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const topBar = document.getElementById('topAppBar');
+    if (!topBar) return;
+    if (window.scrollY > lastScrollY && window.scrollY > 50) {
+      topBar.classList.add('nav-hidden');
+    } else {
+      topBar.classList.remove('nav-hidden');
+    }
+    lastScrollY = window.scrollY;
+  }, { passive: true });
+
+  // Theme Toggle
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    }
+    updateThemeIcon();
+  }
+  function updateThemeIcon() {
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+  }
+  updateThemeIcon();
+
+  // Filter State Management
+  const activeFilters = {
+    priceSort: 'default', // 'low-to-high' | 'high-to-low' | 'default'
+    distance: 'all', // 'all' | 'gate1' | 'gate2' | 'eugelion'
+    amenity: 'all' // 'all' | 'wifi' | 'water' | 'electricity' | 'secure' | 'study'
+  };
+
+  const FilterControls = {
+    open(type) {
+      const modal = document.getElementById('filterModalContent');
+      if (type === 'price') {
+        modal.innerHTML = `
+          <h3>Filter by Price</h3>
+          <div class="profile-row" onclick="FilterControls.setPrice('default')"><span>Default Order</span> ${activeFilters.priceSort==='default'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setPrice('low-to-high')"><span>Price: Low to High</span> ${activeFilters.priceSort==='low-to-high'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setPrice('high-to-low')"><span>Price: High to Low</span> ${activeFilters.priceSort==='high-to-low'?'✓':''}</div>
+          <button class="btn-primary" style="margin-top:14px;" onclick="FilterControls.close()">Done</button>
+        `;
+      } else if (type === 'distance') {
+        modal.innerHTML = `
+          <h3>Filter by Distance / Area</h3>
+          <div class="profile-row" onclick="FilterControls.setDistance('all')"><span>All Areas</span> ${activeFilters.distance==='all'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setDistance('gate1')"><span>Near Main Gate 1</span> ${activeFilters.distance==='gate1'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setDistance('gate2')"><span>Near Gate 2</span> ${activeFilters.distance==='gate2'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setDistance('eugelion')"><span>Near Eugelion Church</span> ${activeFilters.distance==='eugelion'?'✓':''}</div>
+          <button class="btn-primary" style="margin-top:14px;" onclick="FilterControls.close()">Done</button>
+        `;
+      } else if (type === 'amenities') {
+        modal.innerHTML = `
+          <h3>Filter by Amenities</h3>
+          <div class="profile-row" onclick="FilterControls.setAmenity('all')"><span>All Amenities</span> ${activeFilters.amenity==='all'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setAmenity('wifi')"><span>Wi-Fi</span> ${activeFilters.amenity==='wifi'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setAmenity('water')"><span>Water</span> ${activeFilters.amenity==='water'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setAmenity('electricity')"><span>Electricity / Solar</span> ${activeFilters.amenity==='electricity'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setAmenity('secure')"><span>Security</span> ${activeFilters.amenity==='secure'?'✓':''}</div>
+          <div class="profile-row" onclick="FilterControls.setAmenity('study')"><span>Study Area</span> ${activeFilters.amenity==='study'?'✓':''}</div>
+          <button class="btn-primary" style="margin-top:14px;" onclick="FilterControls.close()">Done</button>
+        `;
+      }
+      document.getElementById('filterOverlay').classList.remove('hidden');
+    },
+    close() { document.getElementById('filterOverlay').classList.add('hidden'); },
+    setPrice(val) {
+      activeFilters.priceSort = val;
+      document.getElementById('chip-price').classList.toggle('active', val !== 'default');
+      document.getElementById('label-price').textContent = val === 'default' ? 'Price' : (val === 'low-to-high' ? 'Low-High' : 'High-Low');
+      this.close();
+      applyAllFilters();
+    },
+    setDistance(val) {
+      activeFilters.distance = val;
+      document.getElementById('chip-distance').classList.toggle('active', val !== 'all');
+      document.getElementById('label-distance').textContent = val === 'all' ? 'Distance' : val;
+      this.close();
+      applyAllFilters();
+    },
+    setAmenity(val) {
+      activeFilters.amenity = val;
+      document.getElementById('chip-amenities').classList.toggle('active', val !== 'all');
+      document.getElementById('label-amenities').textContent = val === 'all' ? 'Amenities' : val;
+      this.close();
+      applyAllFilters();
+    }
+  };
+
+  // Auth Controls & Password Reset
   const AuthGate = {
-    mode: 'login',
+    mode: 'login', // 'login' | 'signup' | 'forgot'
+
     toggleMode() {
       this.mode = this.mode === 'login' ? 'signup' : 'login';
-      document.getElementById('authSubmitBtn').textContent = this.mode === 'login' ? 'Log In' : 'Create Account';
+      this.updateUI();
     },
-    async submit() {
+
+    showForgotPassword() {
+      this.mode = 'forgot';
+      this.updateUI();
+    },
+
+    updateUI() {
+      const heading = document.getElementById('authHeading');
+      const subheading = document.getElementById('authSubheading');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      const toggleText = document.getElementById('authToggleText');
+      const passInput = document.getElementById('authPassword');
+      const forgotLink = document.getElementById('forgotPasswordBtn');
+      document.getElementById('authError').textContent = '';
+
+      if (this.mode === 'login') {
+        heading.textContent = 'Welcome Back';
+        subheading.textContent = 'Sign in to browse verified boarding houses.';
+        submitBtn.textContent = 'Log In';
+        toggleText.innerHTML = "Don't have an account? <strong>Create one</strong>";
+        passInput.classList.remove('hidden');
+        forgotLink.classList.remove('hidden');
+      } else if (this.mode === 'signup') {
+        heading.textContent = 'Create Account';
+        subheading.textContent = 'Sign up to browse verified boarding houses.';
+        submitBtn.textContent = 'Create Account';
+        toggleText.innerHTML = "Already have an account? <strong>Log in</strong>";
+        passInput.classList.remove('hidden');
+        forgotLink.classList.add('hidden');
+      } else if (this.mode === 'forgot') {
+        heading.textContent = 'Reset Password';
+        subheading.textContent = 'Enter your email to receive a password reset code link.';
+        submitBtn.textContent = 'Send Reset Code';
+        toggleText.innerHTML = "Remembered your password? <strong>Log in</strong>";
+        passInput.classList.add('hidden');
+        forgotLink.classList.add('hidden');
+      }
+    },
+
+    async submitEmail() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value;
-      const err = document.getElementById('authError');
-      err.textContent = '';
+      const errorEl = document.getElementById('authError');
+      errorEl.textContent = '';
+
+      if (!email) {
+        errorEl.textContent = 'Please enter your email address.';
+        return;
+      }
+
       try {
+        if (this.mode === 'forgot') {
+          await auth.sendPasswordResetEmail(email);
+          alert('Password reset link sent! Please check your email inbox.');
+          this.mode = 'login';
+          this.updateUI();
+          return;
+        }
+
+        if (!password) {
+          errorEl.textContent = 'Please enter your password.';
+          return;
+        }
+
         if (this.mode === 'login') {
           await auth.signInWithEmailAndPassword(email, password);
         } else {
           const cred = await auth.createUserWithEmailAndPassword(email, password);
-          await db.collection('users').doc(cred.user.uid).set({ email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+          await db.collection('users').doc(cred.user.uid).set({
+            email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
         }
       } catch (e) {
-        err.textContent = e.message;
+        errorEl.textContent = this.friendlyError(e);
       }
     },
-    async forgotPassword() {
-      const email = document.getElementById('authEmail').value.trim();
-      if (!email) { alert('Enter your email address first.'); return; }
-      try {
-        await auth.sendPasswordResetEmail(email);
-        alert('Password reset link sent to your email.');
-      } catch (e) {
-        alert(e.message);
-      }
+
+    friendlyError(e) {
+      const map = {
+        'auth/user-not-found': 'No account with that email address exists.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-credential': 'Incorrect email or password.',
+        'auth/email-already-in-use': 'That email is already registered.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/weak-password': 'Password must be at least 6 characters.',
+      };
+      return map[e.code] || 'Something went wrong. Please try again.';
     }
   };
 
+  // Saved / Bookmark Sync
   let favoritesUnsub = null;
   const favoritedIds = new Set();
 
   function watchMyFavorites(uid) {
     if (favoritesUnsub) return;
-    favoritesUnsub = db.collection('favorites').where('uid', '==', uid).onSnapshot((snap) => {
-      favoritedIds.clear();
-      snap.forEach((doc) => favoritedIds.add(doc.data().houseId));
-      updateFavoriteButtons();
-      if (location.hash === '#saved') renderSavedPage();
-    });
+    favoritesUnsub = db.collection('favorites')
+      .where('uid', '==', uid)
+      .onSnapshot((snap) => {
+        favoritedIds.clear();
+        snap.forEach((doc) => favoritedIds.add(doc.data().houseId));
+        updateFavoriteButtons();
+        if (location.hash === '#saved') renderSavedPage();
+      });
   }
 
   async function toggleFavorite(houseId) {
     const user = auth.currentUser;
     if (!user) return;
     const docId = `${user.uid}_${houseId}`;
-    if (favoritedIds.has(houseId)) {
-      await db.collection('favorites').doc(docId).delete();
-    } else {
-      await db.collection('favorites').doc(docId).set({ uid: user.uid, houseId, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    const isFav = favoritedIds.has(houseId);
+    try {
+      if (isFav) {
+        await db.collection('favorites').doc(docId).delete();
+      } else {
+        await db.collection('favorites').doc(docId).set({
+          uid: user.uid,
+          houseId,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (e) {
+      console.error('Save error:', e);
     }
   }
 
@@ -472,11 +872,11 @@
     document.querySelectorAll('[data-favorite-id]').forEach((el) => {
       const isFav = favoritedIds.has(el.dataset.favoriteId);
       el.classList.toggle('active', isFav);
-      el.innerHTML = isFav ? '★' : '☆';
     });
   }
 
   const allHousesData = {};
+  let rawListings = [];
   let listingsUnsub = null;
 
   auth.onAuthStateChanged((user) => {
@@ -496,78 +896,169 @@
     }
   });
 
+  // Split free-text amenities/features
+  function parseAmenities(info) {
+    const text = (info || '').toLowerCase();
+    const chips = [];
+    if (text.includes('wifi') || text.includes('wi-fi') || text.includes('internet')) chips.push('Wi-Fi');
+    if (text.includes('water') || text.includes('borehole')) chips.push('Water');
+    if (text.includes('power') || text.includes('electricity') || text.includes('solar')) chips.push('Electricity');
+    if (text.includes('security') || text.includes('guard')) chips.push('Secure');
+    if (text.includes('study') || text.includes('desk')) chips.push('Study Area');
+    return chips;
+  }
+
+  const CHECK_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>';
+  const BOOKMARK_SVG = '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+
   function startListeningToListings() {
     listingsUnsub = db.collection("houses").where("pendingVerification", "==", false)
-      .onSnapshot((snapshot) => {
-        const wrapper = document.getElementById("listingsWrapper");
-        wrapper.innerHTML = "";
-        if (snapshot.empty) {
-          wrapper.innerHTML = "<div class='empty-state'>No listings available right now.</div>";
-          return;
-        }
-
-        snapshot.forEach((doc) => {
+      .onSnapshot((querySnapshot) => {
+        rawListings = [];
+        querySnapshot.forEach((doc) => {
           const data = doc.data();
           const houseId = doc.id;
           const houseName = data.name || data.houseName || "Boarding House";
           const location = data.location || "Mulungushi Area";
-          const price = data.price || "0";
+          const price = parseFloat(data.price) || 0;
           const rooms = data.roomsAvailable || "Available";
           const phone = data.phone || "";
           const whatsapp = data.whatsapp || "";
           const info = data.info || "";
 
-          let imagesArray = Array.isArray(data.imageUrl) ? data.imageUrl : [PLACEHOLDER_IMG];
-          const imagesJson = escapeHtml(JSON.stringify(imagesArray));
+          let imagesArray = [];
+          if (Array.isArray(data.imageUrl) && data.imageUrl.length > 0) imagesArray = data.imageUrl;
+          else if (typeof data.imageUrl === 'string' && data.imageUrl) imagesArray = [data.imageUrl];
+          else imagesArray = [PLACEHOLDER_IMG];
+
+          const lat = parseFloat(data.latitude);
+          const lng = parseFloat(data.longitude);
+          const hasPin = !isNaN(lat) && !isNaN(lng);
+          const mapUrl = hasPin ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : null;
           const waTarget = `https://wa.me/${whatsapp}?text=Hi, I am interested in '${houseName}'. Is it available?`;
 
-          allHousesData[houseId] = { houseId, houseName, location, price, rooms, phone, whatsapp, info, imagesArray, waTarget };
-
-          const cardHTML = `
-            <div class="listing-card" data-search="${escapeHtml((houseName + ' ' + location).toLowerCase())}">
-              <div class="gallery-wrap">
-                <div class="listing-photo-container" data-images="${imagesJson}">
-                  <img src="${imagesArray[0]}" class="listing-img">
-                </div>
-                <div class="listing-id-badge">ID: BH-${houseId.slice(0,4)}</div>
-              </div>
-
-              <div class="listing-header">
-                <div>
-                  <div class="listing-title">${escapeHtml(houseName)}</div>
-                  <div class="listing-subtitle">${escapeHtml(location)}</div>
-                  <span class="rooms-chip">🟢 ${escapeHtml(String(rooms))} Rooms Available</span>
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-                  <button class="save-btn" data-favorite-id="${houseId}" onclick="toggleFavorite('${houseId}')">☆</button>
-                  <div class="price-tag">K${escapeHtml(String(price))}<small>/ month</small></div>
-                </div>
-              </div>
-
-              <div class="action-row">
-                <a href="${waTarget}" target="_blank" class="btn-whatsapp">WhatsApp</a>
-                <a href="tel:${phone}" class="btn-call">Call Landlord</a>
-                <a href="#house-${houseId}" style="background:var(--border); color:var(--ink);">Details</a>
-              </div>
-            </div>
-          `;
-          wrapper.insertAdjacentHTML('beforeend', cardHTML);
+          const houseObj = { houseId, houseName, location, price, rooms, phone, whatsapp, info, hasPin, mapUrl, imagesArray, waTarget };
+          allHousesData[houseId] = houseObj;
+          rawListings.push(houseObj);
         });
-        updateFavoriteButtons();
+
+        applyAllFilters();
+      }, (err) => {
+        console.error(err);
+        document.getElementById("listingsWrapper").innerHTML = "<div class='empty-state'>Failed to load listings. Check your network connection.</div>";
       });
   }
 
-  function filterListings() {
-    const input = document.getElementById('searchInput').value.toLowerCase();
-    document.querySelectorAll('.listing-card').forEach(card => {
-      const match = card.getAttribute('data-search').includes(input);
-      card.style.display = match ? "" : "none";
+  // Combined Filter and Sort Application
+  function applyAllFilters() {
+    const wrapper = document.getElementById("listingsWrapper");
+    if (!wrapper) return;
+    const searchTerm = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase();
+
+    let list = [...rawListings];
+
+    // 1. Text Search Filter
+    if (searchTerm) {
+      list = list.filter(h => (h.houseName + ' ' + h.location + ' ' + h.info).toLowerCase().includes(searchTerm));
+    }
+
+    // 2. Amenity Filter
+    if (activeFilters.amenity !== 'all') {
+      list = list.filter(h => {
+        const ams = parseAmenities(h.info).map(a => a.toLowerCase());
+        return ams.includes(activeFilters.amenity.toLowerCase());
+      });
+    }
+
+    // 3. Distance/Location Filter
+    if (activeFilters.distance !== 'all') {
+      const target = activeFilters.distance.toLowerCase();
+      list = list.filter(h => h.location.toLowerCase().includes(target) || h.info.toLowerCase().includes(target));
+    }
+
+    // 4. Price Sort
+    if (activeFilters.priceSort === 'low-to-high') {
+      list.sort((a, b) => a.price - b.price);
+    } else if (activeFilters.priceSort === 'high-to-low') {
+      list.sort((a, b) => b.price - a.price);
+    }
+
+    wrapper.innerHTML = "";
+    if (list.length === 0) {
+      wrapper.innerHTML = "<div class='empty-state'>No boarding houses match your current filter criteria.</div>";
+      return;
+    }
+
+    list.forEach((house) => {
+      const amenities = parseAmenities(house.info);
+      const amenitiesHtml = amenities.length
+        ? `<div class="amenity-chips">${amenities.map(a => `<span class="amenity-chip">${a}</span>`).join('')}</div>`
+        : '';
+
+      const imagesHtml = house.imagesArray
+        .map((src) => `<img src="${src}" alt="Photo" class="listing-img" onclick="Lightbox.open('${src}')">`)
+        .join('');
+
+      const cardHTML = `
+        <div class="listing-card">
+          <div class="gallery-wrap">
+            <div class="listing-photo-container">
+              ${imagesHtml}
+            </div>
+            <div class="listing-id-badge">ID: BH-${house.houseId.slice(0, 4).toUpperCase()}</div>
+            <div class="photo-counter-tag">📷 ${house.imagesArray.length}</div>
+          </div>
+
+          <div class="listing-header">
+            <div>
+              <div class="listing-title">${escapeHtml(house.houseName)}</div>
+              <div class="listing-subtitle">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                ${escapeHtml(house.location)}
+              </div>
+              <span class="rooms-chip">🟢 ${escapeHtml(String(house.rooms))} Rooms Available</span>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <button class="save-bookmark-btn" data-favorite-id="${house.houseId}" onclick="toggleFavorite('${house.houseId}')" aria-label="Save Bookmark">
+                ${BOOKMARK_SVG}
+              </button>
+              <div class="price-tag">K${escapeHtml(String(house.price))}<small>/ month</small></div>
+            </div>
+          </div>
+
+          ${amenitiesHtml}
+
+          <div class="action-row">
+            <a href="${house.waTarget}" target="_blank" class="btn-whatsapp">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.4 0-.5C10 9 9.4 7.6 9.1 7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.3-.1-.2-.3-.2-.6-.3z"/></svg>
+              WhatsApp
+            </a>
+            <a href="tel:${house.phone}" class="btn-call">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .6 2.9a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.5 2.9.6a2 2 0 0 1 1.8 2.1z"/></svg>
+              Call Landlord
+            </a>
+            ${house.hasPin ? `
+            <a href="${house.mapUrl}" target="_blank" class="btn-location">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              Location
+            </a>` : ''}
+            <a href="#house-${house.houseId}" style="background:var(--border); color:var(--ink);">Details</a>
+          </div>
+        </div>
+      `;
+      wrapper.insertAdjacentHTML('beforeend', cardHTML);
     });
+
+    updateFavoriteButtons();
   }
 
+  // Router Engine
   function applyRoute() {
     const hash = location.hash.replace('#', '');
-    ['listingsView', 'detailsView', 'savedView', 'messagesView', 'profileView'].forEach(v => document.getElementById(v).classList.add('hidden'));
+    ['listingsView', 'detailsView', 'savedView', 'messagesView', 'profileView'].forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('hidden');
+    });
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
     if (hash.startsWith('house-')) {
@@ -592,64 +1083,141 @@
   }
   window.addEventListener('hashchange', applyRoute);
 
+  // Render Listing Details Screen
   function renderDetailsPage(houseId) {
     const view = document.getElementById('detailsView');
     const h = allHousesData[houseId];
-    if (!h) return;
+    if (!h) {
+      view.innerHTML = `<div class="empty-state">Listing not found.</div>`;
+      return;
+    }
+
+    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+    const isFav = favoritedIds.has(houseId);
+
     view.innerHTML = `
-      <div class="page-back-bar"><button onclick="history.back()">←</button><span>${escapeHtml(h.houseName)}</span></div>
+      <div class="page-back-bar">
+        <button onclick="history.back()">${backSvg}</button>
+        <span>${escapeHtml(h.houseName)}</span>
+      </div>
       <div class="profile-section" style="padding:16px;">
-        <img src="${h.imagesArray[0]}" style="width:100%; height:220px; object-fit:cover; border-radius:10px; margin-bottom:12px;">
-        <h3>${escapeHtml(h.houseName)}</h3>
-        <p style="color:var(--ink-soft); font-size:13px;">${escapeHtml(h.location)}</p>
-        <div class="price-tag" style="text-align:left; margin:10px 0;">K${escapeHtml(String(h.price))} / month</div>
-        <p style="font-size:13px; line-height:1.5;">${escapeHtml(h.info)}</p>
+        <div class="gallery-wrap" style="border-radius:12px; overflow:hidden; margin-bottom:14px;">
+          <img src="${h.imagesArray[0]}" style="width:100%; height:220px; object-fit:cover;">
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h2 style="margin:0 0 4px 0; font-size:18px;">${escapeHtml(h.houseName)}</h2>
+            <p style="color:var(--ink-soft); font-size:13px; margin:0;">${escapeHtml(h.location)}</p>
+          </div>
+          <button class="save-bookmark-btn ${isFav?'active':''}" data-favorite-id="${houseId}" onclick="toggleFavorite('${houseId}')">
+            ${BOOKMARK_SVG}
+          </button>
+        </div>
+
+        <div class="price-tag" style="text-align:left; margin:12px 0 6px 0;">K${escapeHtml(String(h.price))} / month</div>
+        <span class="rooms-chip" style="margin-bottom:12px;">🟢 ${escapeHtml(String(h.rooms))} Rooms Available</span>
+        
+        <p style="font-size:13px; line-height:1.6; color:var(--ink-soft); margin-top:10px;">${escapeHtml(h.info)}</p>
+        
         <div class="action-row" style="padding:14px 0 0 0;">
           <a href="${h.waTarget}" target="_blank" class="btn-whatsapp">WhatsApp</a>
           <a href="tel:${h.phone}" class="btn-call">Call Landlord</a>
+          ${h.hasPin ? `<a href="${h.mapUrl}" target="_blank" class="btn-location">Location</a>` : ''}
         </div>
       </div>
     `;
   }
 
+  // Render Saved Listings Page
   function renderSavedPage() {
     const view = document.getElementById('savedView');
     const saved = Array.from(favoritedIds).map(id => allHousesData[id]).filter(Boolean);
+    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+
     const html = saved.length ? saved.map(h => `
       <div class="profile-row" onclick="navigateTo('house-${h.houseId}')">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${h.imagesArray[0]}" style="width:48px; height:48px; object-fit:cover; border-radius:8px;">
-          <div><strong>${escapeHtml(h.houseName)}</strong><div style="font-size:12px; color:var(--ink-soft);">K${escapeHtml(String(h.price))} / month</div></div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img src="${h.imagesArray[0]}" style="width:52px; height:52px; object-fit:cover; border-radius:8px;">
+          <div>
+            <strong style="font-size:14px; color:var(--ink);">${escapeHtml(h.houseName)}</strong>
+            <div style="font-size:12px; color:var(--ink-soft);">K${escapeHtml(String(h.price))} / month</div>
+          </div>
         </div>
         <span>›</span>
       </div>
-    `).join('') : '<div class="empty-state">No saved listings yet.</div>';
+    `).join('') : '<div class="empty-state">No saved boarding houses yet. Bookmark listings to view them here.</div>';
 
     view.innerHTML = `
-      <div class="page-back-bar"><button onclick="navigateTo('')">←</button><span>Saved Boarding Houses</span></div>
+      <div class="page-back-bar"><button onclick="navigateTo('')">${backSvg}</button><span>Saved Boarding Houses</span></div>
       <div class="profile-section">${html}</div>
     `;
   }
 
+  // Render Profile Screen (Exact options from screenshots)
   function renderProfilePage() {
     const view = document.getElementById('profileView');
     const user = auth.currentUser;
+    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+
     view.innerHTML = `
-      <div class="page-back-bar"><button onclick="navigateTo('')">←</button><span>Profile</span></div>
+      <div class="page-back-bar"><button onclick="navigateTo('')">${backSvg}</button><span>Profile</span></div>
       <div class="profile-section" style="padding:16px;">
-        <div style="font-weight:700; font-size:14.5px;">${escapeHtml(user ? user.email : '')}</div>
-        <div style="font-size:12px; color:var(--brand-blue); margin-top:4px; cursor:pointer;" onclick="AuthGate.forgotPassword()">Change Password</div>
+        <div style="font-weight:700; font-size:15px; color:var(--ink);">${escapeHtml(user ? user.email : '')}</div>
+        <div style="font-size:12.5px; color:var(--brand-blue); margin-top:4px; cursor:pointer;" onclick="AccountMenu.openChangePassword()">Change Password</div>
       </div>
       <div class="profile-section">
         <div class="profile-row" onclick="navigateTo('saved')"><span>Saved Boarding Houses</span><span>›</span></div>
-        <div class="profile-row" onclick="alert('Coming soon')"><span>Recently Viewed</span><span>›</span></div>
+        <div class="profile-row" onclick="alert('Feature coming soon')"><span>Recently Viewed</span><span>›</span></div>
         <div class="profile-row" onclick="navigateTo('messages')"><span>My Inquiries</span><span>›</span></div>
         <div class="profile-row" onclick="alert('Notifications enabled')"><span>Notifications</span><span>›</span></div>
         <div class="profile-row" onclick="window.open('https://wa.me/260776480862','_blank')"><span>Contact Admin / Help</span><span>›</span></div>
-        <div class="profile-row" onclick="auth.signOut()" style="color:#DC2626;"><span>Log Out</span><span>›</span></div>
+        <div class="profile-row" onclick="auth.signOut()" style="color:#EF4444;"><span>Log Out</span><span>›</span></div>
       </div>
     `;
   }
+
+  // Password Change Modal
+  const AccountMenu = {
+    openChangePassword() {
+      const modal = document.getElementById('accountModal');
+      modal.innerHTML = `
+        <h3>Change Password</h3>
+        <input type="password" id="curPass" class="payment-input" placeholder="Current password">
+        <input type="password" id="newPass" class="payment-input" placeholder="New password">
+        <div id="accErr" style="color:#EF4444; font-size:12px; margin-bottom:10px;"></div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-primary" style="background:var(--border); color:var(--ink);" onclick="AccountMenu.close()">Cancel</button>
+          <button class="btn-primary" onclick="AccountMenu.submitChange()">Save</button>
+        </div>
+      `;
+      document.getElementById('accountOverlay').classList.remove('hidden');
+    },
+    async submitChange() {
+      const cur = document.getElementById('curPass').value;
+      const nw = document.getElementById('newPass').value;
+      const err = document.getElementById('accErr');
+      try {
+        const user = auth.currentUser;
+        const cred = firebase.auth.EmailAuthProvider.credential(user.email, cur);
+        await user.reauthenticateWithCredential(cred);
+        await user.updatePassword(nw);
+        alert('Password successfully updated!');
+        this.close();
+      } catch (e) {
+        err.textContent = 'Could not update password. Verify your current password.';
+      }
+    },
+    close() { document.getElementById('accountOverlay').classList.add('hidden'); }
+  };
+
+  // Photo Viewer Lightbox
+  const Lightbox = {
+    open(src) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightboxOverlay').classList.remove('hidden');
+    },
+    close() { document.getElementById('lightboxOverlay').classList.add('hidden'); }
+  };
 </script>
 </body>
 </html>
