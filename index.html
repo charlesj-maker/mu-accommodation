@@ -12,25 +12,7 @@
 </script>
 
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="MU Accommodation">
-<meta property="og:title" content="MU Accommodation — Verified Boarding Houses">
-<meta property="og:description" content="Browse verified boarding houses near Mulungushi University.">
-<meta property="og:image" content="https://muaccommodation.site/og-image.jpg">
-<meta property="og:url" content="https://muaccommodation.site/">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MU Accommodation — Verified Boarding Houses">
-<meta name="twitter:description" content="Browse verified boarding houses near Mulungushi University.">
-<meta name="twitter:image" content="https://muaccommodation.site/og-image.jpg">
-<meta name="description" content="Browse verified boarding houses near Mulungushi University.">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -45,78 +27,109 @@
     --whatsapp: #25D366;
     --ink: #1A2233;
     --ink-soft: #5B6472;
-    --bg: #0F172A;
-    --card-bg: #1E293B;
-    --border: #334155;
+    --bg: #F4F6F9;
+    --card-bg: #FFFFFF;
+    --border: #E2E8F0;
     --radius-lg: 16px;
     --radius-md: 12px;
     --radius-sm: 8px;
-    --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.35);
-    --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0F172A;
+    --card-bg: #1E293B;
+    --border: #334155;
+    --ink: #F8FAFC;
+    --ink-soft: #94A3B8;
   }
 
   * { box-sizing: border-box; }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     background: var(--bg);
     margin: 0;
     padding: 0;
-    color: #E2E8F0;
+    color: var(--ink);
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Compact Top Header */
+  /* Header Bar */
   .app-bar {
-    background: #0F172A;
+    background: linear-gradient(135deg, var(--brand-blue-dark), var(--brand-blue));
     color: white;
-    padding: 12px 16px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
+    gap: 12px;
     position: sticky;
     top: 0;
     z-index: 50;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
-  .app-bar .header-title {
+  .logo-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 800;
-    font-size: 14px;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: #38BDF8;
+    font-size: 13px;
   }
-  .app-bar .header-sub {
-    font-size: 11px;
-    color: #94A3B8;
-  }
+  .header-title { font-weight: 800; font-size: 15px; letter-spacing: 0.5px; }
+  .header-sub { font-size: 11.5px; opacity: 0.85; }
 
   .container {
     max-width: 480px;
     margin: 0 auto;
-    padding: 12px 12px 75px 12px;
+    padding: 14px 12px 80px 12px;
   }
 
-  /* Search */
-  .search-box-wrap { position: relative; margin-bottom: 14px; }
+  /* Search & Filters */
+  .search-box-wrap { position: relative; margin-bottom: 10px; }
   .search-box {
     width: 100%;
-    padding: 11px 15px 11px 40px;
-    font-size: 13.5px;
+    padding: 12px 14px 12px 40px;
+    font-size: 14px;
     font-family: inherit;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--card-bg);
-    color: white;
+    color: var(--ink);
     outline: none;
   }
-  .search-box:focus { border-color: var(--brand-blue); }
   .search-box-wrap svg {
     position: absolute;
-    left: 13px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94A3B8;
+    color: var(--ink-soft);
+  }
+
+  .filters-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .filter-chip {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   }
 
   /* Listing Card */
@@ -128,89 +141,23 @@
     border: 1px solid var(--border);
     box-shadow: var(--shadow-card);
   }
-
-  .listing-header {
-    padding: 14px 14px 8px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  .listing-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0 0 3px 0;
-    color: #F8FAFC;
-  }
-  .listing-subtitle {
-    font-size: 12px;
-    color: #94A3B8;
-    margin: 0 0 6px 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
+  .listing-header { padding: 14px 14px 8px 14px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .listing-title { font-size: 16px; font-weight: 700; margin: 0 0 2px 0; }
+  .listing-subtitle { font-size: 12px; color: var(--ink-soft); margin: 0 0 6px 0; display: flex; align-items: center; gap: 4px; }
+  
   .rooms-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-size: 11px;
-    color: #22C55E;
-    background: rgba(34, 197, 94, 0.12);
-    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #16A34A;
+    background: rgba(22, 163, 74, 0.1);
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 999px;
   }
-  .price-tag {
-    font-size: 17px;
-    font-weight: 800;
-    color: #4ADE80;
-    white-space: nowrap;
-    text-align: right;
-  }
-  .price-tag small { font-size: 11px; font-weight: 500; color: #94A3B8; display: block; }
-
-  .action-row {
-    display: flex;
-    gap: 8px;
-    padding: 6px 14px 14px 14px;
-  }
-  .action-row a {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 9px 6px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    text-decoration: none;
-    font-size: 12.5px;
-    border: 1px solid transparent;
-    cursor: pointer;
-  }
-  .btn-whatsapp { background-color: #25D366; color: white; }
-  .btn-call { background-color: transparent; color: #4ADE80; border-color: rgba(74, 222, 128, 0.3); }
-  .btn-location { background-color: transparent; color: #38BDF8; border-color: rgba(56, 189, 248, 0.3); }
-
-  /* Save / Bookmark Button */
-  .save-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: #94A3B8;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-  .save-btn.active {
-    color: #38BDF8;
-    border-color: #38BDF8;
-    background: rgba(56, 189, 248, 0.1);
-  }
+  .price-tag { font-size: 16px; font-weight: 800; color: var(--brand-green); text-align: right; }
+  .price-tag small { font-size: 10.5px; font-weight: 500; color: var(--ink-soft); display: block; }
 
   /* Gallery */
   .gallery-wrap { position: relative; background: #000; }
@@ -223,66 +170,77 @@
     scroll-snap-type: x mandatory;
   }
   .listing-photo-container::-webkit-scrollbar { display: none; }
-  .listing-img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    flex-shrink: 0;
-    scroll-snap-align: start;
-    cursor: zoom-in;
-  }
-  .photo-id-tag {
+  .listing-img { width: 100%; height: 200px; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; cursor: zoom-in; }
+  
+  .listing-id-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    background-color: rgba(0, 0, 0, 0.65);
+    top: 10px;
+    left: 10px;
+    background: rgba(15, 23, 42, 0.85);
     color: white;
-    padding: 3px 8px;
-    border-radius: 999px;
+    padding: 4px 10px;
+    border-radius: 6px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.5px;
   }
 
-  .amenity-chips {
+  /* Action Buttons & Save */
+  .action-row { display: flex; gap: 8px; padding: 6px 14px 14px 14px; }
+  .action-row a {
+    flex: 1;
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 10px 14px 6px 14px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 9px 6px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 12.5px;
+    border: 1px solid transparent;
   }
+  .btn-whatsapp { background-color: var(--whatsapp); color: white; }
+  .btn-call { background-color: transparent; color: var(--brand-green); border-color: #CDE4D0; }
+  .btn-location { background-color: transparent; color: var(--brand-blue); border-color: #CFE3F7; }
+
+  .save-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .save-btn.active { color: #EAB308; border-color: #EAB308; background: rgba(234, 179, 8, 0.1); }
+
+  /* Amenities & Features */
+  .amenity-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; }
   .amenity-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255,255,255,0.06);
-    color: #CBD5E1;
+    background: var(--bg);
+    color: var(--ink);
     font-size: 11px;
     font-weight: 500;
     padding: 4px 8px;
     border-radius: 999px;
+    border: 1px solid var(--border);
   }
+  .features-list { list-style: none; margin: 0; padding: 0 14px 10px 14px; }
+  .features-list li { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
 
-  .features-list {
-    list-style: none;
-    margin: 0;
-    padding: 0 14px 10px 14px;
-  }
-  .features-list li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #94A3B8;
-    margin-bottom: 4px;
-  }
-  .features-list li svg { color: #4ADE80; flex-shrink: 0; }
-
-  /* Bottom Navigation Bar */
+  /* Bottom Navigation */
   .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: #090D16;
+    background: var(--card-bg);
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: space-around;
@@ -295,7 +253,7 @@
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    color: #64748B;
+    color: var(--ink-soft);
     font-size: 11px;
     font-weight: 500;
     text-decoration: none;
@@ -304,18 +262,11 @@
     border: none;
     width: 25%;
   }
-  .nav-item.active { color: #38BDF8; }
+  .nav-item.active { color: var(--brand-blue); }
   .nav-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
-  .nav-item.active svg { stroke: #38BDF8; }
 
-  /* Back Button (Clean Left Arrow) */
-  .page-back-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 0;
-    margin-bottom: 10px;
-  }
+  /* Back Button */
+  .page-back-bar { display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 10px; }
   .page-back-bar button {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -326,166 +277,31 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: white;
+    color: var(--ink);
   }
-  .page-back-bar button svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-  .page-back-bar span { font-weight: 700; font-size: 16px; color: white; }
+  .page-back-bar span { font-weight: 700; font-size: 16px; }
 
-  /* Details Card */
-  .details-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 16px;
-    margin-bottom: 80px;
-  }
-
-  /* Auth Screen */
-  .auth-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 16px;
-  }
-  .auth-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    padding: 28px 20px;
-    max-width: 360px;
-    width: 100%;
-    border: 1px solid var(--border);
-    text-align: center;
-  }
-  .auth-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: var(--brand-blue-dark);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px auto;
-    font-weight: 800;
-    font-size: 16px;
-  }
-  .auth-card h2 { margin: 0 0 4px 0; font-size: 18px; color: white; }
-  .auth-subtitle { font-size: 12.5px; color: #94A3B8; margin: 0 0 16px 0; }
-  .payment-input {
-    width: 100%;
-    padding: 11px 13px;
-    font-size: 13.5px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    margin-bottom: 10px;
-    font-family: inherit;
-    outline: none;
-    background: #0F172A;
-    color: white;
-  }
-  .payment-input:focus { border-color: var(--brand-blue); }
-  .payment-error { color: #EF4444; font-size: 12px; margin-bottom: 10px; min-height: 14px; text-align: left; }
-  .auth-toggle { margin-top: 14px; font-size: 12px; color: #94A3B8; cursor: pointer; }
-  .auth-toggle strong { color: #38BDF8; }
-  .forgot-link {
-    display: block;
-    text-align: right;
-    font-size: 12px;
-    color: #38BDF8;
-    margin: -4px 0 12px 0;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-
-  .btn-primary {
-    background: var(--brand-blue);
-    color: white;
-    border: none;
-    padding: 11px;
-    border-radius: var(--radius-sm);
-    font-weight: 700;
-    font-size: 13.5px;
-    cursor: pointer;
-    width: 100%;
-  }
-
-  /* Overlay & Modals */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    padding: 16px;
-  }
-  .overlay.hidden { display: none !important; }
-  .payment-modal {
-    background: var(--card-bg);
-    color: white;
-    width: 100%;
-    max-width: 400px;
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid var(--border);
-  }
-
-  .hidden { display: none !important; }
-  .empty-state { text-align: center; color: #94A3B8; padding: 40px 20px; font-size: 13.5px; }
-
-  /* Saved & Profile Lists */
-  .saved-house-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-  .saved-house-row img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
-  .profile-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-  .profile-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    font-size: 13px;
-  }
+  /* Auth & Profile */
+  .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 26px 20px; max-width: 360px; width: 100%; border: 1px solid var(--border); text-align: center; box-shadow: var(--shadow-card); }
+  .payment-input { width: 100%; padding: 11px 13px; font-size: 13.5px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; background: var(--bg); color: var(--ink); outline: none; font-family: inherit; }
+  .btn-primary { background: var(--brand-blue); color: white; border: none; padding: 11px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13.5px; cursor: pointer; width: 100%; }
+  
+  .profile-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 6px 14px; margin-bottom: 14px; box-shadow: var(--shadow-card); }
+  .profile-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13.5px; }
   .profile-row:last-child { border-bottom: none; }
 
-  /* Lightbox */
-  .lightbox-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 300;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .lightbox-overlay.hidden { display: none !important; }
-  .lightbox-img { max-width: 92vw; max-height: 85vh; object-fit: contain; }
+  .hidden { display: none !important; }
+  .empty-state { text-align: center; color: var(--ink-soft); padding: 40px 20px; font-size: 13.5px; }
 </style>
 </head>
 <body>
 
 <!-- Header -->
 <div class="app-bar" id="topAppBar">
+  <div class="logo-badge">MU</div>
   <div>
-    <div class="header-title">MU-ACCOMMODATION</div>
+    <div class="header-title">MU-ACCCOMMODATION</div>
     <div class="header-sub">Listings</div>
   </div>
 </div>
@@ -493,19 +309,14 @@
 <!-- Auth Screen -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
-    <div class="auth-logo">MU</div>
-    <h2 id="authHeading">Welcome Back</h2>
-    <p class="auth-subtitle" id="authSubheading">Sign in to browse verified boarding houses.</p>
-    
-    <input type="email" id="authEmail" class="payment-input" placeholder="Email address" autocomplete="email">
-    <input type="password" id="authPassword" class="payment-input" placeholder="Password" autocomplete="current-password">
-    
-    <span class="forgot-link" id="forgotPasswordBtn" onclick="AuthGate.showForgotPassword()">Forgot password?</span>
-    
-    <div class="payment-error" id="authError"></div>
-    
-    <button class="btn-primary" onclick="AuthGate.submitEmail()" id="authSubmitBtn">Log In</button>
-    <div class="auth-toggle" id="authToggleText" onclick="AuthGate.toggleMode()">Don't have an account? <strong>Create one</strong></div>
+    <h2 id="authHeading" style="margin-top:0;">Welcome</h2>
+    <p class="auth-subtitle" id="authSubheading" style="font-size:13px; color:var(--ink-soft); margin-bottom:16px;">Sign in to browse verified boarding houses.</p>
+    <input type="email" id="authEmail" class="payment-input" placeholder="Email address">
+    <input type="password" id="authPassword" class="payment-input" placeholder="Password">
+    <span style="display:block; text-align:right; font-size:12px; color:var(--brand-blue); margin-bottom:12px; cursor:pointer;" onclick="AuthGate.forgotPassword()">Forgot password?</span>
+    <div id="authError" style="color:red; font-size:12px; margin-bottom:10px;"></div>
+    <button class="btn-primary" onclick="AuthGate.submit()" id="authSubmitBtn">Log In</button>
+    <div style="margin-top:14px; font-size:12.5px; color:var(--ink-soft); cursor:pointer;" onclick="AuthGate.toggleMode()">Don't have an account? <strong style="color:var(--brand-blue);">Create one</strong></div>
   </div>
 </div>
 
@@ -519,6 +330,22 @@
       <input type="text" id="searchInput" class="search-box" placeholder="Search boarding houses, locations..." onkeyup="filterListings()">
     </div>
 
+    <!-- Filter chips row -->
+    <div class="filters-row">
+      <button class="filter-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        Price ▾
+      </button>
+      <button class="filter-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Distance ▾
+      </button>
+      <button class="filter-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Amenities ▾
+      </button>
+    </div>
+
     <div id="listingsWrapper">
       <div class="empty-state">Loading listings...</div>
     </div>
@@ -530,7 +357,7 @@
   <!-- Saved View -->
   <div id="savedView" class="hidden"></div>
 
-  <!-- Messages View (Placeholder unwired) -->
+  <!-- Messages View (Unwired placeholder) -->
   <div id="messagesView" class="hidden">
     <div class="empty-state">
       <h3>Messages</h3>
@@ -562,18 +389,7 @@
   </button>
 </div>
 
-<!-- Modal for Password Change / Password Reset -->
-<div class="overlay hidden" id="accountOverlay" onclick="if(event.target===this) AccountMenu.close()">
-  <div class="payment-modal" id="accountModal"></div>
-</div>
-
-<!-- Full-screen Lightbox -->
-<div class="lightbox-overlay hidden" id="lightboxOverlay" onclick="Lightbox.close()">
-  <img class="lightbox-img" id="lightboxImg" src="" alt="">
-</div>
-
 <script>
-  // Firebase Init
   const firebaseConfig = {
     apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
     authDomain: "university-homes-zambia.firebaseapp.com",
@@ -592,148 +408,63 @@
     return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // Navigation controller
-  function navigateTo(route) {
-    location.hash = route;
-  }
+  function navigateTo(route) { location.hash = route; }
 
-  // Auth Management
   const AuthGate = {
-    mode: 'login', // 'login' | 'signup' | 'forgot'
-
+    mode: 'login',
     toggleMode() {
-      if (this.mode === 'forgot') {
-        this.mode = 'login';
-      } else {
-        this.mode = this.mode === 'login' ? 'signup' : 'login';
-      }
-      this.updateUI();
+      this.mode = this.mode === 'login' ? 'signup' : 'login';
+      document.getElementById('authSubmitBtn').textContent = this.mode === 'login' ? 'Log In' : 'Create Account';
     },
-
-    showForgotPassword() {
-      this.mode = 'forgot';
-      this.updateUI();
-    },
-
-    updateUI() {
-      const heading = document.getElementById('authHeading');
-      const subheading = document.getElementById('authSubheading');
-      const submitBtn = document.getElementById('authSubmitBtn');
-      const toggleText = document.getElementById('authToggleText');
-      const passInput = document.getElementById('authPassword');
-      const forgotLink = document.getElementById('forgotPasswordBtn');
-      const errorEl = document.getElementById('authError');
-      errorEl.textContent = '';
-
-      if (this.mode === 'login') {
-        heading.textContent = 'Welcome Back';
-        subheading.textContent = 'Sign in to browse verified boarding houses.';
-        submitBtn.textContent = 'Log In';
-        toggleText.innerHTML = "Don't have an account? <strong>Create one</strong>";
-        passInput.classList.remove('hidden');
-        forgotLink.classList.remove('hidden');
-      } else if (this.mode === 'signup') {
-        heading.textContent = 'Create Account';
-        subheading.textContent = 'Sign up to browse verified boarding houses.';
-        submitBtn.textContent = 'Create Account';
-        toggleText.innerHTML = "Already have an account? <strong>Log in</strong>";
-        passInput.classList.remove('hidden');
-        forgotLink.classList.add('hidden');
-      } else if (this.mode === 'forgot') {
-        heading.textContent = 'Reset Password';
-        subheading.textContent = 'Enter your email to receive a password reset link.';
-        submitBtn.textContent = 'Send Reset Code';
-        toggleText.innerHTML = "Remembered your password? <strong>Log in</strong>";
-        passInput.classList.add('hidden');
-        forgotLink.classList.add('hidden');
-      }
-    },
-
-    async submitEmail() {
+    async submit() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value;
-      const errorEl = document.getElementById('authError');
-      errorEl.textContent = '';
-
-      if (!email) {
-        errorEl.textContent = 'Please enter your email.';
-        return;
-      }
-
+      const err = document.getElementById('authError');
+      err.textContent = '';
       try {
-        if (this.mode === 'forgot') {
-          await auth.sendPasswordResetEmail(email);
-          alert('Password reset link sent! Check your email inbox.');
-          this.mode = 'login';
-          this.updateUI();
-          return;
-        }
-
-        if (!password) {
-          errorEl.textContent = 'Please enter your password.';
-          return;
-        }
-
         if (this.mode === 'login') {
           await auth.signInWithEmailAndPassword(email, password);
         } else {
           const cred = await auth.createUserWithEmailAndPassword(email, password);
-          await db.collection('users').doc(cred.user.uid).set({
-            email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          });
+          await db.collection('users').doc(cred.user.uid).set({ email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
         }
       } catch (e) {
-        errorEl.textContent = this.friendlyError(e);
+        err.textContent = e.message;
       }
     },
-
-    friendlyError(e) {
-      const map = {
-        'auth/user-not-found': 'No account with that email found.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/invalid-credential': 'Incorrect email or password.',
-        'auth/email-already-in-use': 'That email is already registered.',
-        'auth/invalid-email': 'Enter a valid email address.',
-        'auth/weak-password': 'Password must be at least 6 characters.',
-      };
-      return map[e.code] || 'Something went wrong. Please try again.';
+    async forgotPassword() {
+      const email = document.getElementById('authEmail').value.trim();
+      if (!email) { alert('Enter your email address first.'); return; }
+      try {
+        await auth.sendPasswordResetEmail(email);
+        alert('Password reset link sent to your email.');
+      } catch (e) {
+        alert(e.message);
+      }
     }
   };
 
-  // Saved / Bookmark State
   let favoritesUnsub = null;
   const favoritedIds = new Set();
 
   function watchMyFavorites(uid) {
     if (favoritesUnsub) return;
-    favoritesUnsub = db.collection('favorites')
-      .where('uid', '==', uid)
-      .onSnapshot((snap) => {
-        favoritedIds.clear();
-        snap.forEach((doc) => favoritedIds.add(doc.data().houseId));
-        updateFavoriteButtons();
-        if (location.hash === '#saved') renderSavedPage();
-      });
+    favoritesUnsub = db.collection('favorites').where('uid', '==', uid).onSnapshot((snap) => {
+      favoritedIds.clear();
+      snap.forEach((doc) => favoritedIds.add(doc.data().houseId));
+      updateFavoriteButtons();
+      if (location.hash === '#saved') renderSavedPage();
+    });
   }
 
   async function toggleFavorite(houseId) {
     const user = auth.currentUser;
     if (!user) return;
     const docId = `${user.uid}_${houseId}`;
-    const isFav = favoritedIds.has(houseId);
-    try {
-      if (isFav) {
-        await db.collection('favorites').doc(docId).delete();
-      } else {
-        await db.collection('favorites').doc(docId).set({
-          uid: user.uid,
-          houseId,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-      }
-    } catch (e) {
-      console.error('Save error:', e);
+    if (favoritedIds.has(houseId)) {
+      await db.collection('favorites').doc(docId).delete();
+    } else {
+      await db.collection('favorites').doc(docId).set({ uid: user.uid, houseId, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     }
   }
 
@@ -741,9 +472,7 @@
     document.querySelectorAll('[data-favorite-id]').forEach((el) => {
       const isFav = favoritedIds.has(el.dataset.favoriteId);
       el.classList.toggle('active', isFav);
-      el.innerHTML = isFav 
-        ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
-        : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+      el.innerHTML = isFav ? '★' : '☆';
     });
   }
 
@@ -751,39 +480,33 @@
   let listingsUnsub = null;
 
   auth.onAuthStateChanged((user) => {
-    const authScreen = document.getElementById('authScreen');
-    const appContent = document.getElementById('appContent');
-    const bottomNav = document.getElementById('bottomNav');
-    const topAppBar = document.getElementById('topAppBar');
-
     if (user) {
-      authScreen.classList.add('hidden');
-      appContent.classList.remove('hidden');
-      bottomNav.classList.remove('hidden');
-      topAppBar.classList.remove('hidden');
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('appContent').classList.remove('hidden');
+      document.getElementById('bottomNav').classList.remove('hidden');
+      document.getElementById('topAppBar').classList.remove('hidden');
       watchMyFavorites(user.uid);
       if (!listingsUnsub) startListeningToListings();
       applyRoute();
     } else {
-      authScreen.classList.remove('hidden');
-      appContent.classList.add('hidden');
-      bottomNav.classList.add('hidden');
-      topAppBar.classList.add('hidden');
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('appContent').classList.add('hidden');
+      document.getElementById('bottomNav').classList.add('hidden');
+      document.getElementById('topAppBar').classList.add('hidden');
     }
   });
 
   function startListeningToListings() {
     listingsUnsub = db.collection("houses").where("pendingVerification", "==", false)
-      .onSnapshot((querySnapshot) => {
+      .onSnapshot((snapshot) => {
         const wrapper = document.getElementById("listingsWrapper");
         wrapper.innerHTML = "";
-
-        if (querySnapshot.empty) {
-          wrapper.innerHTML = "<div class='empty-state'>No listings available.</div>";
+        if (snapshot.empty) {
+          wrapper.innerHTML = "<div class='empty-state'>No listings available right now.</div>";
           return;
         }
 
-        querySnapshot.forEach((doc) => {
+        snapshot.forEach((doc) => {
           const data = doc.data();
           const houseId = doc.id;
           const houseName = data.name || data.houseName || "Boarding House";
@@ -794,45 +517,37 @@
           const whatsapp = data.whatsapp || "";
           const info = data.info || "";
 
-          let imagesArray = Array.isArray(data.imageUrl) ? data.imageUrl : (data.imageUrl ? [data.imageUrl] : [PLACEHOLDER_IMG]);
+          let imagesArray = Array.isArray(data.imageUrl) ? data.imageUrl : [PLACEHOLDER_IMG];
           const imagesJson = escapeHtml(JSON.stringify(imagesArray));
-
-          const lat = parseFloat(data.latitude);
-          const lng = parseFloat(data.longitude);
-          const hasPin = !isNaN(lat) && !isNaN(lng);
-          const mapUrl = hasPin ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : null;
           const waTarget = `https://wa.me/${whatsapp}?text=Hi, I am interested in '${houseName}'. Is it available?`;
 
-          allHousesData[houseId] = { houseId, houseName, location, price, rooms, phone, whatsapp, info, hasPin, mapUrl, imagesArray, waTarget };
+          allHousesData[houseId] = { houseId, houseName, location, price, rooms, phone, whatsapp, info, imagesArray, waTarget };
 
           const cardHTML = `
             <div class="listing-card" data-search="${escapeHtml((houseName + ' ' + location).toLowerCase())}">
               <div class="gallery-wrap">
                 <div class="listing-photo-container" data-images="${imagesJson}">
-                  <img src="${imagesArray[0]}" class="listing-img" onclick="Lightbox.open('${imagesArray[0]}')">
+                  <img src="${imagesArray[0]}" class="listing-img">
                 </div>
-                <span class="photo-id-tag">📷 ${imagesArray.length}</span>
+                <div class="listing-id-badge">ID: BH-${houseId.slice(0,4)}</div>
               </div>
 
               <div class="listing-header">
                 <div>
                   <div class="listing-title">${escapeHtml(houseName)}</div>
                   <div class="listing-subtitle">${escapeHtml(location)}</div>
-                  <span class="rooms-chip">${escapeHtml(String(rooms))} Rooms Available</span>
+                  <span class="rooms-chip">🟢 ${escapeHtml(String(rooms))} Rooms Available</span>
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-                  <button class="save-btn" data-favorite-id="${houseId}" onclick="toggleFavorite('${houseId}')">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                  </button>
+                  <button class="save-btn" data-favorite-id="${houseId}" onclick="toggleFavorite('${houseId}')">☆</button>
                   <div class="price-tag">K${escapeHtml(String(price))}<small>/ month</small></div>
                 </div>
               </div>
 
               <div class="action-row">
                 <a href="${waTarget}" target="_blank" class="btn-whatsapp">WhatsApp</a>
-                <a href="tel:${phone}" class="btn-call">Call</a>
-                ${hasPin ? `<a href="${mapUrl}" target="_blank" class="btn-location">Location</a>` : ''}
-                <a href="#house-${houseId}" style="background:var(--border); color:white;">Details</a>
+                <a href="tel:${phone}" class="btn-call">Call Landlord</a>
+                <a href="#house-${houseId}" style="background:var(--border); color:var(--ink);">Details</a>
               </div>
             </div>
           `;
@@ -844,19 +559,15 @@
 
   function filterListings() {
     const input = document.getElementById('searchInput').value.toLowerCase();
-    const cards = document.getElementsByClassName('listing-card');
-    for (let i = 0; i < cards.length; i++) {
-      const match = cards[i].getAttribute('data-search').includes(input);
-      cards[i].style.display = match ? "" : "none";
-    }
+    document.querySelectorAll('.listing-card').forEach(card => {
+      const match = card.getAttribute('data-search').includes(input);
+      card.style.display = match ? "" : "none";
+    });
   }
 
-  // Router Controller
   function applyRoute() {
     const hash = location.hash.replace('#', '');
-    const views = ['listingsView', 'detailsView', 'savedView', 'messagesView', 'profileView'];
-    views.forEach(v => document.getElementById(v).classList.add('hidden'));
-
+    ['listingsView', 'detailsView', 'savedView', 'messagesView', 'profileView'].forEach(v => document.getElementById(v).classList.add('hidden'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
     if (hash.startsWith('house-')) {
@@ -881,123 +592,64 @@
   }
   window.addEventListener('hashchange', applyRoute);
 
-  // Render Details Screen with Clean Left Arrow Back Button
   function renderDetailsPage(houseId) {
     const view = document.getElementById('detailsView');
-    const house = allHousesData[houseId];
-    if (!house) return;
-
-    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
-
+    const h = allHousesData[houseId];
+    if (!h) return;
     view.innerHTML = `
-      <div class="page-back-bar">
-        <button onclick="history.back()">${backSvg}</button>
-        <span>${escapeHtml(house.houseName)}</span>
-      </div>
-      <div class="details-card">
-        <img src="${house.imagesArray[0]}" style="width:100%; border-radius:12px; height:220px; object-fit:cover; margin-bottom:14px;">
-        <h3>${escapeHtml(house.houseName)}</h3>
-        <p style="color:#94A3B8; font-size:13px;">${escapeHtml(house.location)}</p>
-        <div class="price-tag" style="text-align:left; margin:10px 0;">K${escapeHtml(String(house.price))} / month</div>
-        <p style="font-size:13px; line-height:1.5; color:#CBD5E1;">${escapeHtml(house.info)}</p>
-        
+      <div class="page-back-bar"><button onclick="history.back()">←</button><span>${escapeHtml(h.houseName)}</span></div>
+      <div class="profile-section" style="padding:16px;">
+        <img src="${h.imagesArray[0]}" style="width:100%; height:220px; object-fit:cover; border-radius:10px; margin-bottom:12px;">
+        <h3>${escapeHtml(h.houseName)}</h3>
+        <p style="color:var(--ink-soft); font-size:13px;">${escapeHtml(h.location)}</p>
+        <div class="price-tag" style="text-align:left; margin:10px 0;">K${escapeHtml(String(h.price))} / month</div>
+        <p style="font-size:13px; line-height:1.5;">${escapeHtml(h.info)}</p>
         <div class="action-row" style="padding:14px 0 0 0;">
-          <a href="${house.waTarget}" target="_blank" class="btn-whatsapp">WhatsApp</a>
-          <a href="tel:${house.phone}" class="btn-call">Call</a>
-          ${house.hasPin ? `<a href="${house.mapUrl}" target="_blank" class="btn-location">Location</a>` : ''}
+          <a href="${h.waTarget}" target="_blank" class="btn-whatsapp">WhatsApp</a>
+          <a href="tel:${h.phone}" class="btn-call">Call Landlord</a>
         </div>
       </div>
     `;
   }
 
-  // Render Saved List Screen
   function renderSavedPage() {
     const view = document.getElementById('savedView');
-    const savedHouses = Array.from(favoritedIds).map(id => allHousesData[id]).filter(Boolean);
-
-    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
-
-    const savedHtml = savedHouses.length ? savedHouses.map(h => `
-      <div class="saved-house-row" onclick="navigateTo('house-${h.houseId}')">
-        <img src="${h.imagesArray[0] || PLACEHOLDER_IMG}">
-        <div>
-          <div style="font-weight:700; font-size:14px; color:white;">${escapeHtml(h.houseName)}</div>
-          <div style="font-size:12px; color:#94A3B8;">K${escapeHtml(String(h.price))} / month</div>
+    const saved = Array.from(favoritedIds).map(id => allHousesData[id]).filter(Boolean);
+    const html = saved.length ? saved.map(h => `
+      <div class="profile-row" onclick="navigateTo('house-${h.houseId}')">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${h.imagesArray[0]}" style="width:48px; height:48px; object-fit:cover; border-radius:8px;">
+          <div><strong>${escapeHtml(h.houseName)}</strong><div style="font-size:12px; color:var(--ink-soft);">K${escapeHtml(String(h.price))} / month</div></div>
         </div>
+        <span>›</span>
       </div>
-    `).join('') : '<div class="empty-state">No saved listings yet. Bookmark houses to view them here.</div>';
+    `).join('') : '<div class="empty-state">No saved listings yet.</div>';
 
     view.innerHTML = `
-      <div class="page-back-bar">
-        <button onclick="navigateTo('')">${backSvg}</button>
-        <span>Saved Houses</span>
-      </div>
-      ${savedHtml}
+      <div class="page-back-bar"><button onclick="navigateTo('')">←</button><span>Saved Boarding Houses</span></div>
+      <div class="profile-section">${html}</div>
     `;
   }
 
-  // Render Profile Screen
   function renderProfilePage() {
     const view = document.getElementById('profileView');
     const user = auth.currentUser;
-    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
-
     view.innerHTML = `
-      <div class="page-back-bar">
-        <button onclick="navigateTo('')">${backSvg}</button>
-        <span>Account & Profile</span>
+      <div class="page-back-bar"><button onclick="navigateTo('')">←</button><span>Profile</span></div>
+      <div class="profile-section" style="padding:16px;">
+        <div style="font-weight:700; font-size:14.5px;">${escapeHtml(user ? user.email : '')}</div>
+        <div style="font-size:12px; color:var(--brand-blue); margin-top:4px; cursor:pointer;" onclick="AuthGate.forgotPassword()">Change Password</div>
       </div>
       <div class="profile-section">
-        <div style="font-size:14px; font-weight:600; color:white;">${escapeHtml(user ? user.email : '')}</div>
-      </div>
-      <div class="profile-section">
-        <div class="profile-row" onclick="AccountMenu.openChangePassword()"><span>Change Password</span><span>›</span></div>
-        <div class="profile-row" onclick="window.open('https://wa.me/260776480862','_blank')"><span>Contact Support</span><span>›</span></div>
-        <div class="profile-row" onclick="auth.signOut()" style="color:#EF4444;"><span>Log Out</span><span>›</span></div>
+        <div class="profile-row" onclick="navigateTo('saved')"><span>Saved Boarding Houses</span><span>›</span></div>
+        <div class="profile-row" onclick="alert('Coming soon')"><span>Recently Viewed</span><span>›</span></div>
+        <div class="profile-row" onclick="navigateTo('messages')"><span>My Inquiries</span><span>›</span></div>
+        <div class="profile-row" onclick="alert('Notifications enabled')"><span>Notifications</span><span>›</span></div>
+        <div class="profile-row" onclick="window.open('https://wa.me/260776480862','_blank')"><span>Contact Admin / Help</span><span>›</span></div>
+        <div class="profile-row" onclick="auth.signOut()" style="color:#DC2626;"><span>Log Out</span><span>›</span></div>
       </div>
     `;
   }
-
-  const AccountMenu = {
-    openChangePassword() {
-      const modal = document.getElementById('accountModal');
-      modal.innerHTML = `
-        <h3 style="margin:0 0 10px 0;">Change Password</h3>
-        <input type="password" id="currentPass" class="payment-input" placeholder="Current Password">
-        <input type="password" id="newPass" class="payment-input" placeholder="New Password">
-        <div class="payment-error" id="accountErr"></div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-primary" style="background:var(--border);" onclick="AccountMenu.close()">Cancel</button>
-          <button class="btn-primary" onclick="AccountMenu.submitPasswordChange()">Save</button>
-        </div>
-      `;
-      document.getElementById('accountOverlay').classList.remove('hidden');
-    },
-    async submitPasswordChange() {
-      const cur = document.getElementById('currentPass').value;
-      const nw = document.getElementById('newPass').value;
-      const err = document.getElementById('accountErr');
-      try {
-        const user = auth.currentUser;
-        const cred = firebase.auth.EmailAuthProvider.credential(user.email, cur);
-        await user.reauthenticateWithCredential(cred);
-        await user.updatePassword(nw);
-        alert('Password updated successfully!');
-        this.close();
-      } catch (e) {
-        err.textContent = 'Failed to update password. Check your current password.';
-      }
-    },
-    close() { document.getElementById('accountOverlay').classList.add('hidden'); }
-  };
-
-  const Lightbox = {
-    open(src) {
-      document.getElementById('lightboxImg').src = src;
-      document.getElementById('lightboxOverlay').classList.remove('hidden');
-    },
-    close() { document.getElementById('lightboxOverlay').classList.add('hidden'); }
-  };
 </script>
 </body>
 </html>
