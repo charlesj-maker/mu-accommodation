@@ -5,1219 +5,695 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MU Accommodation — Verified Boarding Houses</title>
 <script>
-  (function () {
-    var saved = localStorage.getItem('theme');
-    if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-  })();
+(function(){try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();
 </script>
-
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<!-- Firebase App & Firestore & Auth -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-
 <style>
-  :root {
-    --brand-blue: #1E88E5;
-    --brand-blue-dark: #1565C0;
-    --brand-green: #2E7D32;
-    --brand-green-light: #43A047;
-    --whatsapp: #25D366;
-    --ink: #1A2233;
-    --ink-soft: #5B6472;
-    --bg: #F4F6F9;
-    --card-bg: #FFFFFF;
-    --border: #E2E8F0;
-    --radius-lg: 16px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
-    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
-    --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.04);
-  }
-
-  :root[data-theme="dark"] {
-    --brand-blue: #38BDF8;
-    --brand-blue-dark: #0284C7;
-    --brand-green: #4ADE80;
-    --brand-green-light: #22C55E;
-    --bg: #0F172A;
-    --card-bg: #1E293B;
-    --border: #334155;
-    --ink: #F8FAFC;
-    --ink-soft: #94A3B8;
-    --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.35);
-  }
-
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    margin: 0;
-    padding: 0;
-    color: var(--ink);
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Dynamic Hiding Header Bar */
-  .app-bar {
-    background: linear-gradient(135deg, #1565C0, #1E88E5);
-    color: white;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.25);
-    transition: transform 0.3s ease;
-  }
-  .app-bar.nav-hidden {
-    transform: translateY(-100%);
-  }
-
-  .app-bar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 13px;
-    color: white;
-  }
-  .header-title { font-weight: 800; font-size: 15px; letter-spacing: 0.5px; color: white; }
-  .header-sub { font-size: 11px; opacity: 0.85; color: rgba(255,255,255,0.9); }
-
-  .theme-toggle-btn {
-    background: rgba(255,255,255,0.18);
-    border: none;
-    color: white;
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-  }
-
-  .container {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 12px 12px 85px 12px;
-  }
-
-  /* Search & Interactive Filter Chips */
-  .search-box-wrap { position: relative; margin-bottom: 10px; }
-  .search-box {
-    width: 100%;
-    padding: 12px 14px 12px 40px;
-    font-size: 14px;
-    font-family: inherit;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--card-bg);
-    color: var(--ink);
-    outline: none;
-    box-shadow: var(--shadow-soft);
-  }
-  .search-box:focus { border-color: var(--brand-blue); }
-  .search-box-wrap svg {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--ink-soft);
-  }
-
-  .filters-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .filters-row::-webkit-scrollbar { display: none; }
-  .filter-chip {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    padding: 7px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--ink);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-    box-shadow: var(--shadow-soft);
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-  .filter-chip.active {
-    background: var(--brand-blue);
-    color: white;
-    border-color: var(--brand-blue);
-  }
-  .filter-chip svg { stroke: currentColor; fill: none; flex-shrink: 0; }
-
-  /* Listing Card */
-  .listing-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    margin-bottom: 18px;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-card);
-  }
-  
-  .listing-header {
-    padding: 14px 14px 8px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  .listing-title { font-size: 16px; font-weight: 700; margin: 0 0 2px 0; color: var(--ink); }
-  .listing-subtitle {
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin: 0 0 6px 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  
-  .rooms-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    color: #16A34A;
-    background: rgba(22, 163, 74, 0.12);
-    border: 1px solid rgba(22, 163, 74, 0.25);
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 999px;
-  }
-  .price-tag { font-size: 17px; font-weight: 800; color: var(--brand-green); text-align: right; }
-  .price-tag small { font-size: 10.5px; font-weight: 500; color: var(--ink-soft); display: block; }
-
-  /* Fast Hardware-Accelerated Photo Carousel */
-  .gallery-wrap { position: relative; background: #000; }
-  .listing-photo-container {
-    position: relative;
-    width: 100%;
-    height: 220px;
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x pan-y;
-    scroll-behavior: smooth;
-    will-change: scroll-position;
-  }
-  .listing-photo-container::-webkit-scrollbar { display: none; }
-  .listing-img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    flex-shrink: 0;
-    scroll-snap-align: start;
-    cursor: zoom-in;
-  }
-
-  .listing-id-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(15, 23, 42, 0.82);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    backdrop-filter: blur(4px);
-    z-index: 5;
-  }
-  .photo-counter-tag {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.65);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-    z-index: 5;
-  }
-
-  /* Action Buttons & Bookmark Icon */
-  .action-row { display: flex; gap: 8px; padding: 10px 14px 14px 14px; }
-  .action-row a {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 6px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    text-decoration: none;
-    font-size: 12.5px;
-    border: 1px solid transparent;
-    transition: opacity 0.15s ease;
-  }
-  .action-row a:active { opacity: 0.8; }
-  
-  .btn-whatsapp { background-color: var(--whatsapp); color: white; }
-  .btn-call { background-color: transparent; color: var(--brand-green); border-color: rgba(46, 125, 50, 0.3); }
-  .btn-location { background-color: transparent; color: var(--brand-blue); border-color: rgba(30, 136, 229, 0.3); }
-
-  /* Save Bookmark Button */
-  .save-bookmark-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--ink-soft);
-    padding: 8px 11px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-  }
-  .save-bookmark-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
-  .save-bookmark-btn.active {
-    color: #F59E0B;
-    border-color: #F59E0B;
-    background: rgba(245, 158, 11, 0.12);
-  }
-  .save-bookmark-btn.active svg { fill: #F59E0B; }
-
-  /* Amenities & Features Checklist */
-  .amenity-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 4px 14px; }
-  .amenity-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(30, 136, 229, 0.08);
-    color: var(--brand-blue);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 9px;
-    border-radius: 999px;
-  }
-  .features-list { list-style: none; margin: 0; padding: 0 14px 10px 14px; }
-  .features-list li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin-bottom: 4px;
-  }
-  .features-list li svg { color: var(--brand-green); flex-shrink: 0; }
-
-  /* Bottom Navigation */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--card-bg);
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 8px 0 10px 0;
-    z-index: 100;
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
-  }
-  .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    color: var(--ink-soft);
-    font-size: 11px;
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-    background: none;
-    border: none;
-    width: 25%;
-  }
-  .nav-item.active { color: var(--brand-blue); font-weight: 700; }
-  .nav-item svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 2; }
-  .nav-item.active svg { stroke: var(--brand-blue); fill: rgba(30, 136, 229, 0.12); }
-
-  /* Clean Arrow Back Bar */
-  .page-back-bar { display: flex; align-items: center; gap: 12px; padding: 10px 0 14px 0; }
-  .page-back-bar button {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--ink);
-    box-shadow: var(--shadow-soft);
-  }
-  .page-back-bar button svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-  .page-back-bar span { font-weight: 700; font-size: 16px; color: var(--ink); }
-
-  /* Auth & Profile Screens */
-  .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .auth-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    padding: 28px 22px;
-    max-width: 360px;
-    width: 100%;
-    border: 1px solid var(--border);
-    text-align: center;
-    box-shadow: var(--shadow-card);
-  }
-  .auth-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: var(--brand-blue-dark);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 14px auto;
-    font-weight: 800;
-    font-size: 16px;
-  }
-  .payment-input {
-    width: 100%;
-    padding: 11px 13px;
-    font-size: 13.5px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    margin-bottom: 10px;
-    background: var(--bg);
-    color: var(--ink);
-    outline: none;
-    font-family: inherit;
-  }
-  .payment-input:focus { border-color: var(--brand-blue); }
-  .btn-primary {
-    background: var(--brand-blue);
-    color: white;
-    border: none;
-    padding: 11px;
-    border-radius: var(--radius-sm);
-    font-weight: 700;
-    font-size: 13.5px;
-    cursor: pointer;
-    width: 100%;
-  }
-
-  .profile-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 6px 14px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow-card);
-  }
-  .profile-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 13px 0;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    font-size: 13.5px;
-  }
-  .profile-row:last-child { border-bottom: none; }
-
-  /* Modals & Overlays */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    padding: 16px;
-  }
-  .overlay.hidden { display: none !important; }
-  .modal-box {
-    background: var(--card-bg);
-    color: var(--ink);
-    width: 100%;
-    max-width: 400px;
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-card);
-  }
-  .modal-box h3 { margin: 0 0 12px 0; font-size: 16.5px; font-weight: 700; }
-
-  .hidden { display: none !important; }
-  .empty-state { text-align: center; color: var(--ink-soft); padding: 40px 20px; font-size: 13.5px; }
-
-  /* Lightbox */
-  .lightbox-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 300;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .lightbox-overlay.hidden { display: none !important; }
-  .lightbox-img { max-width: 92vw; max-height: 85vh; object-fit: contain; }
+:root{--brand-blue:#1E88E5;--brand-blue-dark:#1565C0;--brand-green:#2E7D32;--whatsapp:#25D366;--ink:#1A2233;--ink-soft:#5B6472;--bg:#F4F6F9;--card-bg:#fff;--border:#E2E8F0;--radius-lg:16px;--radius-md:12px;--radius-sm:8px;--shadow-card:0 4px 20px rgba(0,0,0,.06);--shadow-soft:0 2px 10px rgba(0,0,0,.04)}
+:root[data-theme="dark"]{--brand-blue:#38BDF8;--brand-blue-dark:#0284C7;--brand-green:#4ADE80;--bg:#0F172A;--card-bg:#1E293B;--border:#334155;--ink:#F8FAFC;--ink-soft:#94A3B8;--shadow-card:0 6px 24px rgba(0,0,0,.35)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);margin:0;color:var(--ink);-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+.app-bar{background:linear-gradient(135deg,#1565C0,#1E88E5);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(21,101,192,.25);transition:transform .3s ease}
+.app-bar.nav-hidden{transform:translateY(-100%)}
+.app-bar-brand{display:flex;align-items:center;gap:10px}
+.logo-badge{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.header-title{font-weight:800;font-size:15px;letter-spacing:.5px}
+.header-sub{font-size:11px;opacity:.9;cursor:pointer}
+.theme-toggle-btn{background:rgba(255,255,255,.18);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:14px}
+.container{max-width:480px;margin:0 auto;padding:12px 12px 85px}
+.search-box-wrap{position:relative;margin-bottom:10px}
+.search-box{width:100%;padding:12px 14px 12px 40px;font-size:14px;font-family:inherit;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card-bg);color:var(--ink);outline:none;box-shadow:var(--shadow-soft)}
+.search-box:focus{border-color:var(--brand-blue)}
+.search-box-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-soft)}
+.filters-row{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.filters-row::-webkit-scrollbar{display:none}
+.filter-chip{background:var(--card-bg);border:1px solid var(--border);padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap;box-shadow:var(--shadow-soft)}
+.filter-chip.active{background:var(--brand-blue);color:#fff;border-color:var(--brand-blue)}
+.listing-card{background:var(--card-bg);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:18px;border:1px solid var(--border);box-shadow:var(--shadow-card)}
+.listing-header{padding:14px 14px 8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.listing-title{font-size:16px;font-weight:700;margin:0 0 2px}
+.listing-subtitle{font-size:12px;color:var(--ink-soft);margin:0 0 6px}
+.rooms-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#16A34A;background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.25);font-weight:600;padding:3px 8px;border-radius:999px}
+.price-tag{font-size:17px;font-weight:800;color:var(--brand-green);text-align:right}
+.price-tag small{font-size:10.5px;font-weight:500;color:var(--ink-soft);display:block}
+.gallery-wrap{position:relative;background:#000}
+.listing-photo-container{width:100%;height:220px;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.listing-photo-container::-webkit-scrollbar{display:none}
+.listing-img{width:100%;height:220px;object-fit:cover;flex-shrink:0;scroll-snap-align:start;cursor:zoom-in}
+.listing-id-badge{position:absolute;top:10px;left:10px;background:rgba(15,23,42,.82);color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;z-index:5}
+.photo-counter-tag{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600;z-index:5}
+.gal-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 0 2px}
+.gal-prev{left:8px}.gal-next{right:8px}
+.action-row{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px 14px}
+.action-row a{flex:1 1 100px;min-width:0;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 6px;border-radius:var(--radius-sm);font-weight:600;text-decoration:none;font-size:12.5px;border:1px solid transparent}
+.action-row a:active{opacity:.8}
+.btn-whatsapp{background:var(--whatsapp);color:#fff}
+.btn-call{color:var(--brand-green);border-color:rgba(46,125,50,.3)!important}
+.btn-location{color:var(--brand-blue);border-color:rgba(30,136,229,.3)!important}
+.btn-details{background:var(--border);color:var(--ink)}
+.save-bookmark-btn{background:transparent;border:1px solid var(--border);color:var(--ink-soft);padding:8px 11px;border-radius:var(--radius-sm);cursor:pointer;display:inline-flex;flex-shrink:0}
+.save-bookmark-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
+.save-bookmark-btn.active{color:#F59E0B;border-color:#F59E0B;background:rgba(245,158,11,.12)}
+.save-bookmark-btn.active svg{fill:#F59E0B}
+.amenity-chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 4px}
+.amenity-chip{background:rgba(30,136,229,.08);color:var(--brand-blue);font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-bg);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 calc(10px + env(safe-area-inset-bottom));z-index:100}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-soft);font-size:11px;font-weight:500;cursor:pointer;background:none;border:none;width:25%}
+.nav-item.active{color:var(--brand-blue);font-weight:700}
+.nav-item svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2}
+.nav-item.active svg{fill:rgba(30,136,229,.12)}
+.page-back-bar{display:flex;align-items:center;gap:12px;padding:10px 0 14px}
+.page-back-bar button{background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.page-back-bar button svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5}
+.page-back-bar span{font-weight:700;font-size:16px}
+.auth-screen{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{background:var(--card-bg);border-radius:var(--radius-lg);padding:28px 22px;max-width:360px;width:100%;border:1px solid var(--border);text-align:center;box-shadow:var(--shadow-card)}
+.auth-logo{width:48px;height:48px;border-radius:12px;background:var(--brand-blue-dark);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-weight:800;font-size:16px}
+.payment-input{width:100%;padding:11px 13px;font-size:13.5px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;background:var(--bg);color:var(--ink);outline:none;font-family:inherit}
+.payment-input:focus{border-color:var(--brand-blue)}
+.btn-primary{background:var(--brand-blue);color:#fff;border:none;padding:11px;border-radius:var(--radius-sm);font-weight:700;font-size:13.5px;cursor:pointer;width:100%}
+.profile-section{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:6px 14px;margin-bottom:14px;box-shadow:var(--shadow-card)}
+.profile-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13.5px}
+.profile-row:last-child{border-bottom:none}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+.modal-box{background:var(--card-bg);color:var(--ink);width:100%;max-width:400px;border-radius:16px;padding:20px;border:1px solid var(--border)}
+.modal-box h3{margin:0 0 12px;font-size:16.5px;font-weight:700}
+.empty-state{text-align:center;color:var(--ink-soft);padding:40px 20px;font-size:13.5px}
+.lightbox-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300}
+.lb-track{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.lb-track::-webkit-scrollbar{display:none}
+.lb-slide{flex:0 0 100%;height:100%;display:flex;align-items:center;justify-content:center;scroll-snap-align:center}
+.lb-slide img{max-width:100%;max-height:100%;object-fit:contain}
+.lb-close{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;z-index:5;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:#fff;font-size:18px;cursor:pointer}
+.lb-counter{position:absolute;top:max(22px,calc(env(safe-area-inset-top) + 8px));left:50%;transform:translateX(-50%);z-index:5;color:#fff;font-size:13px;font-weight:600;background:rgba(0,0,0,.5);padding:3px 10px;border-radius:999px}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:#fff;font-size:26px;line-height:1;cursor:pointer}
+.lb-prev{left:10px}.lb-next{right:10px}
 </style>
 </head>
 <body>
 
-<!-- Sticky Header (Hides on Scroll Down) -->
-<div class="app-bar" id="topAppBar">
+<div class="app-bar hidden" id="topAppBar">
   <div class="app-bar-brand">
     <div class="logo-badge">MU</div>
     <div>
       <div class="header-title">MU-ACCOMMODATION</div>
-      <div class="header-sub">Listings</div>
+      <div class="header-sub" id="headerSub" onclick="UniPicker.open()">Listings</div>
     </div>
   </div>
   <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
 </div>
 
-<!-- Auth Screen -->
+<!-- Auth -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">MU</div>
-    <h2 id="authHeading" style="margin:0 0 4px 0; font-size:18px;">Welcome Back</h2>
-    <p class="auth-subtitle" id="authSubheading" style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Sign in to browse verified boarding houses.</p>
-    
-    <input type="email" id="authEmail" class="payment-input" placeholder="Email address" autocomplete="email">
+    <h2 id="authHeading" style="margin:0 0 4px;font-size:18px">Welcome Back</h2>
+    <p id="authSubheading" style="font-size:12.5px;color:var(--ink-soft);margin-bottom:16px">Sign in to browse verified boarding houses.</p>
+    <input type="email" inputmode="email" id="authEmail" class="payment-input" placeholder="Email address" autocomplete="email">
     <input type="password" id="authPassword" class="payment-input" placeholder="Password" autocomplete="current-password">
-    
-    <span style="display:block; text-align:right; font-size:12px; color:var(--brand-blue); margin:-4px 0 12px 0; cursor:pointer; text-decoration:underline;" id="forgotPasswordBtn" onclick="AuthGate.showForgotPassword()">Forgot password?</span>
-    
-    <div id="authError" style="color:#EF4444; font-size:12px; margin-bottom:10px; min-height:14px; text-align:left;"></div>
-    
+    <span style="display:block;text-align:right;font-size:12px;color:var(--brand-blue);margin:-4px 0 12px;cursor:pointer;text-decoration:underline" id="forgotPasswordBtn" onclick="AuthGate.showForgotPassword()">Forgot password?</span>
+    <div id="authError" style="color:#EF4444;font-size:12px;margin-bottom:10px;min-height:14px;text-align:left"></div>
     <button class="btn-primary" onclick="AuthGate.submitEmail()" id="authSubmitBtn">Log In</button>
-    <div style="margin-top:14px; font-size:12px; color:var(--ink-soft); cursor:pointer;" id="authToggleText" onclick="AuthGate.toggleMode()">Don't have an account? <strong style="color:var(--brand-blue);">Create one</strong></div>
+    <div style="margin-top:14px;font-size:12px;color:var(--ink-soft);cursor:pointer" id="authToggleText" onclick="AuthGate.toggleMode()">Don't have an account? <strong style="color:var(--brand-blue)">Create one</strong></div>
   </div>
 </div>
 
-<!-- Main Application View -->
+<!-- University chooser -->
+<div class="auth-screen hidden" id="uniScreen">
+  <div class="auth-card" style="max-width:420px;text-align:left">
+    <div class="auth-logo">🎓</div>
+    <h2 style="margin:0 0 4px;font-size:18px;text-align:center">Choose your university</h2>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;text-align:center">We're adding more universities soon.</p>
+    <input type="text" id="uniSearch" class="payment-input" placeholder="Search university..." oninput="UniPicker.render()">
+    <div id="uniList"></div>
+  </div>
+</div>
+
+<!-- App -->
 <div class="container hidden" id="appContent">
-  
-  <!-- Listings View -->
   <div id="listingsView">
     <div class="search-box-wrap">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" class="search-box" placeholder="Search boarding houses, locations..." onkeyup="applyAllFilters()">
+      <input type="text" id="searchInput" class="search-box" placeholder="Search boarding houses, locations..." oninput="applyAllFilters()">
     </div>
-
-    <!-- Filter chips row with drop menus -->
     <div class="filters-row">
-      <button class="filter-chip" id="chip-price" onclick="FilterControls.open('price')">
-        <svg width="13" height="13" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-        <span id="label-price">Price</span> ▾
-      </button>
-      <button class="filter-chip" id="chip-distance" onclick="FilterControls.open('distance')">
-        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span id="label-distance">Distance</span> ▾
-      </button>
-      <button class="filter-chip" id="chip-amenities" onclick="FilterControls.open('amenities')">
-        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        <span id="label-amenities">Amenities</span> ▾
-      </button>
+      <button class="filter-chip" id="chip-price" onclick="FilterControls.open('price')"><span id="label-price">Price</span> ▾</button>
+      <button class="filter-chip" id="chip-distance" onclick="FilterControls.open('distance')"><span id="label-distance">Distance</span> ▾</button>
+      <button class="filter-chip" id="chip-amenities" onclick="FilterControls.open('amenities')"><span id="label-amenities">Amenities</span> ▾</button>
     </div>
-
-    <div id="listingsWrapper">
-      <div class="empty-state">Loading listings...</div>
-    </div>
+    <div id="listingsWrapper"><div class="empty-state">Loading listings...</div></div>
   </div>
-
-  <!-- Details View -->
   <div id="detailsView" class="hidden"></div>
-
-  <!-- Saved View -->
   <div id="savedView" class="hidden"></div>
-
-  <!-- Messages View (Placeholder unwired) -->
-  <div id="messagesView" class="hidden">
-    <div class="empty-state">
-      <h3>Messages</h3>
-      <p>No active conversations yet.</p>
-    </div>
-  </div>
-
-  <!-- Profile View -->
+  <div id="messagesView" class="hidden"><div class="empty-state"><h3>Messages</h3><p>No active conversations yet.</p></div></div>
   <div id="profileView" class="hidden"></div>
 </div>
 
-<!-- Bottom Navigation Bar -->
 <div class="bottom-nav hidden" id="bottomNav">
-  <button class="nav-item active" id="nav-listings" onclick="navigateTo('')">
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    <span>Listings</span>
-  </button>
-  <button class="nav-item" id="nav-saved" onclick="navigateTo('saved')">
-    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-    <span>Saved</span>
-  </button>
-  <button class="nav-item" id="nav-messages" onclick="navigateTo('messages')">
-    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <span>Messages</span>
-  </button>
-  <button class="nav-item" id="nav-profile" onclick="navigateTo('profile')">
-    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    <span>Profile</span>
-  </button>
+  <button class="nav-item active" id="nav-listings" onclick="navigateTo('')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Listings</span></button>
+  <button class="nav-item" id="nav-saved" onclick="navigateTo('saved')"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Saved</span></button>
+  <button class="nav-item" id="nav-messages" onclick="navigateTo('messages')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></button>
+  <button class="nav-item" id="nav-profile" onclick="navigateTo('profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></button>
 </div>
 
-<!-- Filter Selector Modal -->
-<div class="overlay hidden" id="filterOverlay" onclick="if(event.target===this) FilterControls.close()">
-  <div class="modal-box" id="filterModalContent"></div>
-</div>
+<div class="overlay hidden" id="filterOverlay" onclick="if(event.target===this)FilterControls.close()"><div class="modal-box" id="filterModalContent"></div></div>
+<div class="overlay hidden" id="accountOverlay" onclick="if(event.target===this)AccountMenu.close()"><div class="modal-box" id="accountModal"></div></div>
 
-<!-- Account / Password Change Modal -->
-<div class="overlay hidden" id="accountOverlay" onclick="if(event.target===this) AccountMenu.close()">
-  <div class="modal-box" id="accountModal"></div>
-</div>
-
-<!-- Lightbox Modal -->
-<div class="lightbox-overlay hidden" id="lightboxOverlay" onclick="Lightbox.close()">
-  <img class="lightbox-img" id="lightboxImg" src="" alt="Listing photo view">
+<div class="lightbox-overlay hidden" id="lightboxOverlay">
+  <button class="lb-close" onclick="Lightbox.close()" aria-label="Close">✕</button>
+  <div class="lb-counter" id="lbCounter"></div>
+  <button class="lb-nav lb-prev" id="lbPrev" onclick="Lightbox.step(-1)" aria-label="Previous">‹</button>
+  <div class="lb-track" id="lbTrack"></div>
+  <button class="lb-nav lb-next" id="lbNext" onclick="Lightbox.step(1)" aria-label="Next">›</button>
 </div>
 
 <script>
-  // Firebase Configuration & Initialization
-  const firebaseConfig = {
-    apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
-    authDomain: "university-homes-zambia.firebaseapp.com",
-    projectId: "university-homes-zambia",
-    storageBucket: "university-homes-zambia.appspot.com",
-    messagingSenderId: "236985394876",
-    appId: "1:236985394876:web:generated"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const auth = firebase.auth();
+const firebaseConfig = {
+  apiKey: ["AIzaSyCjAoyorXNlHxRMzkFgAyiA_1", "L_VcR-X9c"].join(''),
+  authDomain: "university-homes-zambia.firebaseapp.com",
+  projectId: "university-homes-zambia",
+  storageBucket: "university-homes-zambia.appspot.com",
+  messagingSenderId: "236985394876",
+  appId: "1:236985394876:web:generated"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-  const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80";
+const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80";
+const $ = (id) => document.getElementById(id);
+const CHROME = ['appContent', 'bottomNav', 'topAppBar'];
+const BACK_SVG = '<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>';
+const BOOKMARK_SVG = '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
 
-  function escapeHtml(str) {
-    return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function navigateTo(r) { location.hash = r; }
 
-  function navigateTo(route) { location.hash = route; }
+// Header hide on scroll
+let lastY = window.scrollY;
+window.addEventListener('scroll', () => {
+  const bar = $('topAppBar');
+  if (window.scrollY > lastY && window.scrollY > 50) bar.classList.add('nav-hidden');
+  else bar.classList.remove('nav-hidden');
+  lastY = window.scrollY;
+}, { passive: true });
 
-  // Dynamic Header Hide/Show on Scroll
-  let lastScrollY = window.scrollY;
-  window.addEventListener('scroll', () => {
-    const topBar = document.getElementById('topAppBar');
-    if (!topBar) return;
-    if (window.scrollY > lastScrollY && window.scrollY > 50) {
-      topBar.classList.add('nav-hidden');
-    } else {
-      topBar.classList.remove('nav-hidden');
-    }
-    lastScrollY = window.scrollY;
-  }, { passive: true });
-
-  // Theme Toggle
-  function toggleTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-    }
-    updateThemeIcon();
-  }
-  function updateThemeIcon() {
-    const btn = document.getElementById('themeToggleBtn');
-    if (btn) btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
-  }
+// Theme
+function toggleTheme() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (dark) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', 'dark');
+  try { localStorage.setItem('theme', dark ? 'light' : 'dark'); } catch (e) {}
   updateThemeIcon();
+}
+function updateThemeIcon() { $('themeToggleBtn').textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'; }
+updateThemeIcon();
 
-  // Filter State Management
-  const activeFilters = {
-    priceSort: 'default', // 'low-to-high' | 'high-to-low' | 'default'
-    distance: 'all', // 'all' | 'gate1' | 'gate2' | 'eugelion'
-    amenity: 'all' // 'all' | 'wifi' | 'water' | 'electricity' | 'secure' | 'study'
-  };
+// Universities
+const UNIVERSITIES = [
+  { id:'mulungushi', name:'Mulungushi University', short:'MU', active:true },
+  { id:'unza', name:'University of Zambia', short:'UNZA', active:false },
+  { id:'cbu', name:'Copperbelt University', short:'CBU', active:false },
+  { id:'mukuba', name:'Mukuba University', short:'Mukuba', active:false },
+  { id:'knu', name:'Kwame Nkrumah University', short:'KNU', active:false },
+  { id:'zut', name:'Zambia University of Technology', short:'ZUT', active:false },
+  { id:'chalimbana', name:'Chalimbana University', short:'Chalimbana', active:false },
+  { id:'cavendish', name:'Cavendish University Zambia', short:'Cavendish', active:false },
+  { id:'icu', name:'Information and Communications University', short:'ICU', active:false },
+  { id:'rusangu', name:'Rusangu University', short:'Rusangu', active:false },
+  { id:'northrise', name:'Northrise University', short:'Northrise', active:false },
+  { id:'zaou', name:'Zambian Open University', short:'ZAOU', active:false }
+];
+function getStoredUni() { try { return localStorage.getItem('university'); } catch (e) { return null; } }
+function storeUni(id) { try { id ? localStorage.setItem('university', id) : localStorage.removeItem('university'); } catch (e) {} }
+let currentUni = getStoredUni();
+function getUniObj() { return UNIVERSITIES.find(u => u.id === currentUni); }
 
-  const FilterControls = {
-    open(type) {
-      const modal = document.getElementById('filterModalContent');
-      if (type === 'price') {
-        modal.innerHTML = `
-          <h3>Filter by Price</h3>
-          <div class="profile-row" onclick="FilterControls.setPrice('default')"><span>Default Order</span> ${activeFilters.priceSort==='default'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setPrice('low-to-high')"><span>Price: Low to High</span> ${activeFilters.priceSort==='low-to-high'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setPrice('high-to-low')"><span>Price: High to Low</span> ${activeFilters.priceSort==='high-to-low'?'✓':''}</div>
-          <button class="btn-primary" style="margin-top:14px;" onclick="FilterControls.close()">Done</button>
-        `;
-      } else if (type === 'distance') {
-        modal.innerHTML = `
-          <h3>Filter by Distance / Area</h3>
-          <div class="profile-row" onclick="FilterControls.setDistance('all')"><span>All Areas</span> ${activeFilters.distance==='all'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setDistance('gate1')"><span>Near Main Gate 1</span> ${activeFilters.distance==='gate1'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setDistance('gate2')"><span>Near Gate 2</span> ${activeFilters.distance==='gate2'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setDistance('eugelion')"><span>Near Eugelion Church</span> ${activeFilters.distance==='eugelion'?'✓':''}</div>
-          <button class="btn-primary" style="margin-top:14px;" onclick="FilterControls.close()">Done</button>
-        `;
-      } else if (type === 'amenities') {
-        modal.innerHTML = `
-          <h3>Filter by Amenities</h3>
-          <div class="profile-row" onclick="FilterControls.setAmenity('all')"><span>All Amenities</span> ${activeFilters.amenity==='all'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setAmenity('wifi')"><span>Wi-Fi</span> ${activeFilters.amenity==='wifi'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setAmenity('water')"><span>Water</span> ${activeFilters.amenity==='water'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setAmenity('electricity')"><span>Electricity / Solar</span> ${activeFilters.amenity==='electricity'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setAmenity('secure')"><span>Security</span> ${activeFilters.amenity==='secure'?'✓':''}</div>
-          <div class="profile-row" onclick="FilterControls.setAmenity('study')"><span>Study Area</span> ${activeFilters.amenity==='study'?'✓':''}</div>
-          <button class="btn-primary" style="margin-top:14px;" onclick="FilterControls.close()">Done</button>
-        `;
-      }
-      document.getElementById('filterOverlay').classList.remove('hidden');
-    },
-    close() { document.getElementById('filterOverlay').classList.add('hidden'); },
-    setPrice(val) {
-      activeFilters.priceSort = val;
-      document.getElementById('chip-price').classList.toggle('active', val !== 'default');
-      document.getElementById('label-price').textContent = val === 'default' ? 'Price' : (val === 'low-to-high' ? 'Low-High' : 'High-Low');
-      this.close();
-      applyAllFilters();
-    },
-    setDistance(val) {
-      activeFilters.distance = val;
-      document.getElementById('chip-distance').classList.toggle('active', val !== 'all');
-      document.getElementById('label-distance').textContent = val === 'all' ? 'Distance' : val;
-      this.close();
-      applyAllFilters();
-    },
-    setAmenity(val) {
-      activeFilters.amenity = val;
-      document.getElementById('chip-amenities').classList.toggle('active', val !== 'all');
-      document.getElementById('label-amenities').textContent = val === 'all' ? 'Amenities' : val;
-      this.close();
-      applyAllFilters();
+const UniPicker = {
+  open() {
+    CHROME.forEach(id => $(id).classList.add('hidden'));
+    $('uniScreen').classList.remove('hidden');
+    $('uniSearch').value = '';
+    this.render();
+  },
+  render() {
+    const q = $('uniSearch').value.toLowerCase();
+    const list = UNIVERSITIES.filter(u => (u.name + ' ' + u.short).toLowerCase().includes(q));
+    $('uniList').innerHTML = list.map(u => `
+      <div class="profile-row" onclick="UniPicker.choose('${u.id}')">
+        <div><strong>${u.name}</strong><div style="font-size:12px;color:var(--ink-soft)">${u.short}</div></div>
+        ${u.active ? '<span class="rooms-chip">Live</span>' : '<span style="font-size:11px;color:var(--ink-soft)">Coming soon</span>'}
+      </div>`).join('') || '<div class="empty-state">No university found.</div>';
+  },
+  choose(id) {
+    if (id !== currentUni) {
+      if (listingsUnsub) { listingsUnsub(); listingsUnsub = null; }
+      rawListings = [];
+      Object.keys(allHousesData).forEach(k => delete allHousesData[k]);
     }
-  };
-
-  // Auth Controls & Password Reset
-  const AuthGate = {
-    mode: 'login', // 'login' | 'signup' | 'forgot'
-
-    toggleMode() {
-      this.mode = this.mode === 'login' ? 'signup' : 'login';
-      this.updateUI();
-    },
-
-    showForgotPassword() {
-      this.mode = 'forgot';
-      this.updateUI();
-    },
-
-    updateUI() {
-      const heading = document.getElementById('authHeading');
-      const subheading = document.getElementById('authSubheading');
-      const submitBtn = document.getElementById('authSubmitBtn');
-      const toggleText = document.getElementById('authToggleText');
-      const passInput = document.getElementById('authPassword');
-      const forgotLink = document.getElementById('forgotPasswordBtn');
-      document.getElementById('authError').textContent = '';
-
-      if (this.mode === 'login') {
-        heading.textContent = 'Welcome Back';
-        subheading.textContent = 'Sign in to browse verified boarding houses.';
-        submitBtn.textContent = 'Log In';
-        toggleText.innerHTML = "Don't have an account? <strong>Create one</strong>";
-        passInput.classList.remove('hidden');
-        forgotLink.classList.remove('hidden');
-      } else if (this.mode === 'signup') {
-        heading.textContent = 'Create Account';
-        subheading.textContent = 'Sign up to browse verified boarding houses.';
-        submitBtn.textContent = 'Create Account';
-        toggleText.innerHTML = "Already have an account? <strong>Log in</strong>";
-        passInput.classList.remove('hidden');
-        forgotLink.classList.add('hidden');
-      } else if (this.mode === 'forgot') {
-        heading.textContent = 'Reset Password';
-        subheading.textContent = 'Enter your email to receive a password reset code link.';
-        submitBtn.textContent = 'Send Reset Code';
-        toggleText.innerHTML = "Remembered your password? <strong>Log in</strong>";
-        passInput.classList.add('hidden');
-        forgotLink.classList.add('hidden');
-      }
-    },
-
-    async submitEmail() {
-      const email = document.getElementById('authEmail').value.trim();
-      const password = document.getElementById('authPassword').value;
-      const errorEl = document.getElementById('authError');
-      errorEl.textContent = '';
-
-      if (!email) {
-        errorEl.textContent = 'Please enter your email address.';
-        return;
-      }
-
-      try {
-        if (this.mode === 'forgot') {
-          await auth.sendPasswordResetEmail(email);
-          alert('Password reset link sent! Please check your email inbox.');
-          this.mode = 'login';
-          this.updateUI();
-          return;
-        }
-
-        if (!password) {
-          errorEl.textContent = 'Please enter your password.';
-          return;
-        }
-
-        if (this.mode === 'login') {
-          await auth.signInWithEmailAndPassword(email, password);
-        } else {
-          const cred = await auth.createUserWithEmailAndPassword(email, password);
-          await db.collection('users').doc(cred.user.uid).set({
-            email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          });
-        }
-      } catch (e) {
-        errorEl.textContent = this.friendlyError(e);
-      }
-    },
-
-    friendlyError(e) {
-      const map = {
-        'auth/user-not-found': 'No account with that email address exists.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/invalid-credential': 'Incorrect email or password.',
-        'auth/email-already-in-use': 'That email is already registered.',
-        'auth/invalid-email': 'Please enter a valid email address.',
-        'auth/weak-password': 'Password must be at least 6 characters.',
-      };
-      return map[e.code] || 'Something went wrong. Please try again.';
-    }
-  };
-
-  // Saved / Bookmark Sync
-  let favoritesUnsub = null;
-  const favoritedIds = new Set();
-
-  function watchMyFavorites(uid) {
-    if (favoritesUnsub) return;
-    favoritesUnsub = db.collection('favorites')
-      .where('uid', '==', uid)
-      .onSnapshot((snap) => {
-        favoritedIds.clear();
-        snap.forEach((doc) => favoritedIds.add(doc.data().houseId));
-        updateFavoriteButtons();
-        if (location.hash === '#saved') renderSavedPage();
-      });
+    currentUni = id;
+    storeUni(id);
+    enterApp();
   }
+};
 
-  async function toggleFavorite(houseId) {
-    const user = auth.currentUser;
-    if (!user) return;
-    const docId = `${user.uid}_${houseId}`;
-    const isFav = favoritedIds.has(houseId);
+function enterApp() {
+  $('uniScreen').classList.add('hidden');
+  CHROME.forEach(id => $(id).classList.remove('hidden'));
+  const uni = getUniObj();
+  $('headerSub').textContent = uni.short + ' ▾';
+  if (uni.active && !listingsUnsub) startListeningToListings();
+  applyAllFilters();
+  applyRoute();
+}
+
+function logout() {
+  storeUni(null);
+  currentUni = null;
+  if (listingsUnsub) { listingsUnsub(); listingsUnsub = null; }
+  if (favoritesUnsub) { favoritesUnsub(); favoritesUnsub = null; }
+  favoritedIds.clear();
+  rawListings = [];
+  Object.keys(allHousesData).forEach(k => delete allHousesData[k]);
+  location.hash = '';
+  auth.signOut();
+}
+
+// Filters
+const activeFilters = { priceSort: 'default', distance: 'all', amenity: 'all' };
+const DISTANCE_OPTS = { all:['All Areas',[]], gate1:['Near Main Gate 1',['gate 1','gate1','main gate']], gate2:['Near Gate 2',['gate 2','gate2']], eugelion:['Near Eugelion Church',['eugelion']] };
+const AMENITY_OPTS = { all:'All Amenities', wifi:'Wi-Fi', water:'Water', electricity:'Electricity / Solar', secure:'Security', study:'Study Area' };
+const AMENITY_KEY = { 'Wi-Fi':'wifi', 'Water':'water', 'Electricity':'electricity', 'Secure':'secure', 'Study Area':'study' };
+
+const FilterControls = {
+  row(fn, label, on) { return `<div class="profile-row" onclick="${fn}"><span>${label}</span> ${on ? '✓' : ''}</div>`; },
+  open(type) {
+    let h = '';
+    if (type === 'price') {
+      h = '<h3>Sort by Price</h3>' +
+        this.row("FilterControls.setPrice('default')", 'Default Order', activeFilters.priceSort === 'default') +
+        this.row("FilterControls.setPrice('low-to-high')", 'Price: Low to High', activeFilters.priceSort === 'low-to-high') +
+        this.row("FilterControls.setPrice('high-to-low')", 'Price: High to Low', activeFilters.priceSort === 'high-to-low');
+    } else if (type === 'distance') {
+      h = '<h3>Filter by Area</h3>' + Object.keys(DISTANCE_OPTS).map(k => this.row(`FilterControls.setDistance('${k}')`, DISTANCE_OPTS[k][0], activeFilters.distance === k)).join('');
+    } else {
+      h = '<h3>Filter by Amenities</h3>' + Object.keys(AMENITY_OPTS).map(k => this.row(`FilterControls.setAmenity('${k}')`, AMENITY_OPTS[k], activeFilters.amenity === k)).join('');
+    }
+    $('filterModalContent').innerHTML = h + '<button class="btn-primary" style="margin-top:14px" onclick="FilterControls.close()">Done</button>';
+    $('filterOverlay').classList.remove('hidden');
+  },
+  close() { $('filterOverlay').classList.add('hidden'); },
+  setPrice(v) {
+    activeFilters.priceSort = v;
+    $('chip-price').classList.toggle('active', v !== 'default');
+    $('label-price').textContent = v === 'default' ? 'Price' : (v === 'low-to-high' ? 'Low-High' : 'High-Low');
+    this.close(); applyAllFilters();
+  },
+  setDistance(v) {
+    activeFilters.distance = v;
+    $('chip-distance').classList.toggle('active', v !== 'all');
+    $('label-distance').textContent = v === 'all' ? 'Distance' : DISTANCE_OPTS[v][0].replace('Near ', '');
+    this.close(); applyAllFilters();
+  },
+  setAmenity(v) {
+    activeFilters.amenity = v;
+    $('chip-amenities').classList.toggle('active', v !== 'all');
+    $('label-amenities').textContent = v === 'all' ? 'Amenities' : AMENITY_OPTS[v];
+    this.close(); applyAllFilters();
+  }
+};
+
+// Auth
+const AuthGate = {
+  mode: 'login',
+  toggleMode() { this.mode = this.mode === 'login' ? 'signup' : 'login'; this.updateUI(); },
+  showForgotPassword() { this.mode = 'forgot'; this.updateUI(); },
+  updateUI() {
+    $('authError').textContent = '';
+    const pass = $('authPassword'), forgot = $('forgotPasswordBtn');
+    if (this.mode === 'login') {
+      $('authHeading').textContent = 'Welcome Back';
+      $('authSubheading').textContent = 'Sign in to browse verified boarding houses.';
+      $('authSubmitBtn').textContent = 'Log In';
+      $('authToggleText').innerHTML = "Don't have an account? <strong style='color:var(--brand-blue)'>Create one</strong>";
+      pass.classList.remove('hidden'); forgot.classList.remove('hidden');
+      pass.autocomplete = 'current-password';
+    } else if (this.mode === 'signup') {
+      $('authHeading').textContent = 'Create Account';
+      $('authSubheading').textContent = 'Sign up to browse verified boarding houses.';
+      $('authSubmitBtn').textContent = 'Create Account';
+      $('authToggleText').innerHTML = "Already have an account? <strong style='color:var(--brand-blue)'>Log in</strong>";
+      pass.classList.remove('hidden'); forgot.classList.add('hidden');
+      pass.autocomplete = 'new-password';
+    } else {
+      $('authHeading').textContent = 'Reset Password';
+      $('authSubheading').textContent = 'Enter your email to receive a password reset link.';
+      $('authSubmitBtn').textContent = 'Send Reset Link';
+      $('authToggleText').innerHTML = "Remembered your password? <strong style='color:var(--brand-blue)'>Log in</strong>";
+      pass.classList.add('hidden'); forgot.classList.add('hidden');
+    }
+  },
+  async submitEmail() {
+    const email = $('authEmail').value.trim();
+    const password = $('authPassword').value;
+    const err = $('authError');
+    err.textContent = '';
+    if (!email) { err.textContent = 'Please enter your email address.'; return; }
     try {
-      if (isFav) {
-        await db.collection('favorites').doc(docId).delete();
+      if (this.mode === 'forgot') {
+        await auth.sendPasswordResetEmail(email);
+        alert('Password reset link sent! Please check your email inbox.');
+        this.mode = 'login'; this.updateUI(); return;
+      }
+      if (!password) { err.textContent = 'Please enter your password.'; return; }
+      if (this.mode === 'login') {
+        await auth.signInWithEmailAndPassword(email, password);
       } else {
-        await db.collection('favorites').doc(docId).set({
-          uid: user.uid,
-          houseId,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
+        await db.collection('users').doc(cred.user.uid).set({ email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
       }
-    } catch (e) {
-      console.error('Save error:', e);
-    }
+    } catch (e) { err.textContent = this.friendlyError(e); }
+  },
+  friendlyError(e) {
+    return ({
+      'auth/user-not-found': 'No account with that email address exists.',
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/invalid-credential': 'Incorrect email or password.',
+      'auth/email-already-in-use': 'That email is already registered.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/weak-password': 'Password must be at least 6 characters.'
+    })[e.code] || 'Something went wrong. Please try again.';
   }
+};
 
-  function updateFavoriteButtons() {
-    document.querySelectorAll('[data-favorite-id]').forEach((el) => {
-      const isFav = favoritedIds.has(el.dataset.favoriteId);
-      el.classList.toggle('active', isFav);
-    });
-  }
-
-  const allHousesData = {};
-  let rawListings = [];
-  let listingsUnsub = null;
-
-  auth.onAuthStateChanged((user) => {
-    if (user) {
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('appContent').classList.remove('hidden');
-      document.getElementById('bottomNav').classList.remove('hidden');
-      document.getElementById('topAppBar').classList.remove('hidden');
-      watchMyFavorites(user.uid);
-      if (!listingsUnsub) startListeningToListings();
-      applyRoute();
-    } else {
-      document.getElementById('authScreen').classList.remove('hidden');
-      document.getElementById('appContent').classList.add('hidden');
-      document.getElementById('bottomNav').classList.add('hidden');
-      document.getElementById('topAppBar').classList.add('hidden');
-    }
-  });
-
-  // Split free-text amenities/features
-  function parseAmenities(info) {
-    const text = (info || '').toLowerCase();
-    const chips = [];
-    if (text.includes('wifi') || text.includes('wi-fi') || text.includes('internet')) chips.push('Wi-Fi');
-    if (text.includes('water') || text.includes('borehole')) chips.push('Water');
-    if (text.includes('power') || text.includes('electricity') || text.includes('solar')) chips.push('Electricity');
-    if (text.includes('security') || text.includes('guard')) chips.push('Secure');
-    if (text.includes('study') || text.includes('desk')) chips.push('Study Area');
-    return chips;
-  }
-
-  const CHECK_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>';
-  const BOOKMARK_SVG = '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
-
-  function startListeningToListings() {
-    listingsUnsub = db.collection("houses").where("pendingVerification", "==", false)
-      .onSnapshot((querySnapshot) => {
-        rawListings = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const houseId = doc.id;
-          const houseName = data.name || data.houseName || "Boarding House";
-          const location = data.location || "Mulungushi Area";
-          const price = parseFloat(data.price) || 0;
-          const rooms = data.roomsAvailable || "Available";
-          const phone = data.phone || "";
-          const whatsapp = data.whatsapp || "";
-          const info = data.info || "";
-
-          let imagesArray = [];
-          if (Array.isArray(data.imageUrl) && data.imageUrl.length > 0) imagesArray = data.imageUrl;
-          else if (typeof data.imageUrl === 'string' && data.imageUrl) imagesArray = [data.imageUrl];
-          else imagesArray = [PLACEHOLDER_IMG];
-
-          const lat = parseFloat(data.latitude);
-          const lng = parseFloat(data.longitude);
-          const hasPin = !isNaN(lat) && !isNaN(lng);
-          const mapUrl = hasPin ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : null;
-          const waTarget = `https://wa.me/${whatsapp}?text=Hi, I am interested in '${houseName}'. Is it available?`;
-
-          const houseObj = { houseId, houseName, location, price, rooms, phone, whatsapp, info, hasPin, mapUrl, imagesArray, waTarget };
-          allHousesData[houseId] = houseObj;
-          rawListings.push(houseObj);
-        });
-
-        applyAllFilters();
-      }, (err) => {
-        console.error(err);
-        document.getElementById("listingsWrapper").innerHTML = "<div class='empty-state'>Failed to load listings. Check your network connection.</div>";
-      });
-  }
-
-  // Combined Filter and Sort Application
-  function applyAllFilters() {
-    const wrapper = document.getElementById("listingsWrapper");
-    if (!wrapper) return;
-    const searchTerm = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase();
-
-    let list = [...rawListings];
-
-    // 1. Text Search Filter
-    if (searchTerm) {
-      list = list.filter(h => (h.houseName + ' ' + h.location + ' ' + h.info).toLowerCase().includes(searchTerm));
-    }
-
-    // 2. Amenity Filter
-    if (activeFilters.amenity !== 'all') {
-      list = list.filter(h => {
-        const ams = parseAmenities(h.info).map(a => a.toLowerCase());
-        return ams.includes(activeFilters.amenity.toLowerCase());
-      });
-    }
-
-    // 3. Distance/Location Filter
-    if (activeFilters.distance !== 'all') {
-      const target = activeFilters.distance.toLowerCase();
-      list = list.filter(h => h.location.toLowerCase().includes(target) || h.info.toLowerCase().includes(target));
-    }
-
-    // 4. Price Sort
-    if (activeFilters.priceSort === 'low-to-high') {
-      list.sort((a, b) => a.price - b.price);
-    } else if (activeFilters.priceSort === 'high-to-low') {
-      list.sort((a, b) => b.price - a.price);
-    }
-
-    wrapper.innerHTML = "";
-    if (list.length === 0) {
-      wrapper.innerHTML = "<div class='empty-state'>No boarding houses match your current filter criteria.</div>";
-      return;
-    }
-
-    list.forEach((house) => {
-      const amenities = parseAmenities(house.info);
-      const amenitiesHtml = amenities.length
-        ? `<div class="amenity-chips">${amenities.map(a => `<span class="amenity-chip">${a}</span>`).join('')}</div>`
-        : '';
-
-      const imagesHtml = house.imagesArray
-        .map((src) => `<img src="${src}" alt="Photo" class="listing-img" onclick="Lightbox.open('${src}')">`)
-        .join('');
-
-      const cardHTML = `
-        <div class="listing-card">
-          <div class="gallery-wrap">
-            <div class="listing-photo-container">
-              ${imagesHtml}
-            </div>
-            <div class="listing-id-badge">ID: BH-${house.houseId.slice(0, 4).toUpperCase()}</div>
-            <div class="photo-counter-tag">📷 ${house.imagesArray.length}</div>
-          </div>
-
-          <div class="listing-header">
-            <div>
-              <div class="listing-title">${escapeHtml(house.houseName)}</div>
-              <div class="listing-subtitle">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
-                ${escapeHtml(house.location)}
-              </div>
-              <span class="rooms-chip">🟢 ${escapeHtml(String(house.rooms))} Rooms Available</span>
-            </div>
-            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-              <button class="save-bookmark-btn" data-favorite-id="${house.houseId}" onclick="toggleFavorite('${house.houseId}')" aria-label="Save Bookmark">
-                ${BOOKMARK_SVG}
-              </button>
-              <div class="price-tag">K${escapeHtml(String(house.price))}<small>/ month</small></div>
-            </div>
-          </div>
-
-          ${amenitiesHtml}
-
-          <div class="action-row">
-            <a href="${house.waTarget}" target="_blank" class="btn-whatsapp">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.4 0-.5C10 9 9.4 7.6 9.1 7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.3-.1-.2-.3-.2-.6-.3z"/></svg>
-              WhatsApp
-            </a>
-            <a href="tel:${house.phone}" class="btn-call">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .6 2.9a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.5 2.9.6a2 2 0 0 1 1.8 2.1z"/></svg>
-              Call Landlord
-            </a>
-            ${house.hasPin ? `
-            <a href="${house.mapUrl}" target="_blank" class="btn-location">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
-              Location
-            </a>` : ''}
-            <a href="#house-${house.houseId}" style="background:var(--border); color:var(--ink);">Details</a>
-          </div>
-        </div>
-      `;
-      wrapper.insertAdjacentHTML('beforeend', cardHTML);
-    });
-
+// Favorites
+let favoritesUnsub = null;
+const favoritedIds = new Set();
+function watchMyFavorites(uid) {
+  if (favoritesUnsub) return;
+  favoritesUnsub = db.collection('favorites').where('uid', '==', uid).onSnapshot((snap) => {
+    favoritedIds.clear();
+    snap.forEach((d) => favoritedIds.add(d.data().houseId));
     updateFavoriteButtons();
-  }
+    if (location.hash === '#saved') renderSavedPage();
+  });
+}
+async function toggleFavorite(houseId) {
+  const user = auth.currentUser;
+  if (!user) return;
+  const ref = db.collection('favorites').doc(`${user.uid}_${houseId}`);
+  try {
+    if (favoritedIds.has(houseId)) await ref.delete();
+    else await ref.set({ uid: user.uid, houseId, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  } catch (e) { console.error('Save error:', e); }
+}
+function updateFavoriteButtons() {
+  document.querySelectorAll('[data-favorite-id]').forEach((el) => el.classList.toggle('active', favoritedIds.has(el.dataset.favoriteId)));
+}
 
-  // Router Engine
-  function applyRoute() {
-    const hash = location.hash.replace('#', '');
-    ['listingsView', 'detailsView', 'savedView', 'messagesView', 'profileView'].forEach(v => {
-      const el = document.getElementById(v);
-      if (el) el.classList.add('hidden');
+// Listings
+const allHousesData = {};
+let rawListings = [];
+let listingsUnsub = null;
+
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    $('authScreen').classList.add('hidden');
+    watchMyFavorites(user.uid);
+    if (getUniObj()) enterApp(); else UniPicker.open();
+  } else {
+    $('authScreen').classList.remove('hidden');
+    $('uniScreen').classList.add('hidden');
+    CHROME.forEach(id => $(id).classList.add('hidden'));
+  }
+});
+
+function parseAmenities(info) {
+  const t = (info || '').toLowerCase(), c = [];
+  if (/wifi|wi-fi|internet/.test(t)) c.push('Wi-Fi');
+  if (/water|borehole/.test(t)) c.push('Water');
+  if (/power|electricity|solar/.test(t)) c.push('Electricity');
+  if (/security|guard/.test(t)) c.push('Secure');
+  if (/study|desk/.test(t)) c.push('Study Area');
+  return c;
+}
+
+function startListeningToListings() {
+  listingsUnsub = db.collection("houses").where("pendingVerification", "==", false).onSnapshot((snap) => {
+    rawListings = [];
+    snap.forEach((doc) => {
+      const d = doc.data(), houseId = doc.id;
+      const houseName = d.name || d.houseName || "Boarding House";
+      let imgs = [];
+      if (Array.isArray(d.imageUrl) && d.imageUrl.length) imgs = d.imageUrl;
+      else if (typeof d.imageUrl === 'string' && d.imageUrl) imgs = [d.imageUrl];
+      else imgs = [PLACEHOLDER_IMG];
+      const lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+      const hasPin = !isNaN(lat) && !isNaN(lng);
+      const whatsapp = String(d.whatsapp || '').replace(/[^\d]/g, '');
+      const obj = {
+        houseId, houseName,
+        location: d.location || "Mulungushi Area",
+        price: parseFloat(d.price) || 0,
+        rooms: d.roomsAvailable || "Available",
+        phone: String(d.phone || '').replace(/[^\d+]/g, ''),
+        whatsapp, info: d.info || "", hasPin,
+        mapUrl: hasPin ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : null,
+        imagesArray: imgs,
+        waTarget: whatsapp ? `https://wa.me/${whatsapp}?text=${encodeURIComponent("Hi, I am interested in '" + houseName + "'. Is it available?")}` : null
+      };
+      allHousesData[houseId] = obj;
+      rawListings.push(obj);
     });
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    applyAllFilters();
+    if (location.hash.startsWith('#house-')) renderDetailsPage(location.hash.slice(7));
+    if (location.hash === '#saved') renderSavedPage();
+  }, (err) => {
+    console.error(err);
+    $("listingsWrapper").innerHTML = "<div class='empty-state'>Failed to load listings. Check your network connection.</div>";
+  });
+}
 
-    if (hash.startsWith('house-')) {
-      renderDetailsPage(hash.replace('house-', ''));
-      document.getElementById('detailsView').classList.remove('hidden');
-    } else if (hash === 'saved') {
-      renderSavedPage();
-      document.getElementById('savedView').classList.remove('hidden');
-      document.getElementById('nav-saved').classList.add('active');
-    } else if (hash === 'messages') {
-      document.getElementById('messagesView').classList.remove('hidden');
-      document.getElementById('nav-messages').classList.add('active');
-    } else if (hash === 'profile') {
-      renderProfilePage();
-      document.getElementById('profileView').classList.remove('hidden');
-      document.getElementById('nav-profile').classList.add('active');
-    } else {
-      document.getElementById('listingsView').classList.remove('hidden');
-      document.getElementById('nav-listings').classList.add('active');
-    }
-    window.scrollTo(0, 0);
+const Gallery = {
+  scroll(btn, dir) {
+    const c = btn.parentElement.querySelector('.listing-photo-container');
+    c.scrollBy({ left: c.clientWidth * dir, behavior: 'smooth' });
   }
-  window.addEventListener('hashchange', applyRoute);
+};
 
-  // Render Listing Details Screen
-  function renderDetailsPage(houseId) {
-    const view = document.getElementById('detailsView');
+function galleryHtml(h) {
+  const n = h.imagesArray.length;
+  return `<div class="gallery-wrap">
+    <div class="listing-photo-container">${h.imagesArray.map((s, i) => `<img src="${escapeHtml(s)}" alt="Photo" loading="lazy" class="listing-img" onclick="Lightbox.open('${h.houseId}',${i})">`).join('')}</div>
+    <div class="listing-id-badge">ID: BH-${escapeHtml(h.houseId.slice(0, 4).toUpperCase())}</div>
+    <div class="photo-counter-tag">📷 ${n}</div>
+    ${n > 1 ? `<button class="gal-arrow gal-prev" onclick="Gallery.scroll(this,-1)" aria-label="Previous photo">‹</button><button class="gal-arrow gal-next" onclick="Gallery.scroll(this,1)" aria-label="Next photo">›</button>` : ''}
+  </div>`;
+}
+
+function actionButtons(h, withDetails) {
+  return `<div class="action-row">
+    ${h.waTarget ? `<a href="${escapeHtml(h.waTarget)}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ''}
+    ${h.phone ? `<a href="tel:${escapeHtml(h.phone)}" class="btn-call">Call Landlord</a>` : ''}
+    ${h.hasPin ? `<a href="${escapeHtml(h.mapUrl)}" target="_blank" rel="noopener" class="btn-location">Location</a>` : ''}
+    ${withDetails ? `<a href="#house-${escapeHtml(h.houseId)}" class="btn-details">Details</a>` : ''}
+  </div>`;
+}
+
+function applyAllFilters() {
+  const wrapper = $("listingsWrapper");
+  if (!wrapper) return;
+  const uni = getUniObj();
+  if (uni && !uni.active) {
+    wrapper.innerHTML = `<div class="empty-state"><div style="font-size:34px;margin-bottom:8px">🏠</div><strong>${uni.name}</strong><p>Boarding houses for this university are coming soon.</p><button class="btn-primary" style="max-width:220px" onclick="UniPicker.open()">Choose another university</button></div>`;
+    return;
+  }
+  const term = $('searchInput').value.toLowerCase();
+  let list = [...rawListings];
+  if (term) list = list.filter(h => (h.houseName + ' ' + h.location + ' ' + h.info).toLowerCase().includes(term));
+  if (activeFilters.amenity !== 'all') list = list.filter(h => parseAmenities(h.info).some(a => AMENITY_KEY[a] === activeFilters.amenity));
+  if (activeFilters.distance !== 'all') {
+    const terms = DISTANCE_OPTS[activeFilters.distance][1];
+    list = list.filter(h => terms.some(t => (h.location + ' ' + h.info).toLowerCase().includes(t)));
+  }
+  if (activeFilters.priceSort === 'low-to-high') list.sort((a, b) => a.price - b.price);
+  else if (activeFilters.priceSort === 'high-to-low') list.sort((a, b) => b.price - a.price);
+
+  if (!list.length) {
+    wrapper.innerHTML = "<div class='empty-state'>No boarding houses match your search.</div>";
+    return;
+  }
+  wrapper.innerHTML = list.map(h => {
+    const ams = parseAmenities(h.info);
+    return `<div class="listing-card">
+      ${galleryHtml(h)}
+      <div class="listing-header">
+        <div>
+          <div class="listing-title">${escapeHtml(h.houseName)}</div>
+          <div class="listing-subtitle">📍 ${escapeHtml(h.location)}</div>
+          <span class="rooms-chip">🟢 ${escapeHtml(h.rooms)} Rooms Available</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <button class="save-bookmark-btn" data-favorite-id="${escapeHtml(h.houseId)}" onclick="toggleFavorite('${h.houseId}')" aria-label="Save">${BOOKMARK_SVG}</button>
+          <div class="price-tag">K${escapeHtml(h.price)}<small>/ month</small></div>
+        </div>
+      </div>
+      ${ams.length ? `<div class="amenity-chips">${ams.map(a => `<span class="amenity-chip">${a}</span>`).join('')}</div>` : ''}
+      ${actionButtons(h, true)}
+    </div>`;
+  }).join('');
+  updateFavoriteButtons();
+}
+
+// Router
+function applyRoute() {
+  const hash = location.hash.replace('#', '');
+  ['listingsView', 'detailsView', 'savedView', 'messagesView', 'profileView'].forEach(v => $(v).classList.add('hidden'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (hash.startsWith('house-')) {
+    renderDetailsPage(hash.slice(6));
+    $('detailsView').classList.remove('hidden');
+  } else if (hash === 'saved') {
+    renderSavedPage(); $('savedView').classList.remove('hidden'); $('nav-saved').classList.add('active');
+  } else if (hash === 'messages') {
+    $('messagesView').classList.remove('hidden'); $('nav-messages').classList.add('active');
+  } else if (hash === 'profile') {
+    renderProfilePage(); $('profileView').classList.remove('hidden'); $('nav-profile').classList.add('active');
+  } else {
+    $('listingsView').classList.remove('hidden'); $('nav-listings').classList.add('active');
+  }
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', () => { if (auth.currentUser && getUniObj()) applyRoute(); });
+
+function renderDetailsPage(houseId) {
+  const view = $('detailsView'), h = allHousesData[houseId];
+  const back = `<div class="page-back-bar"><button onclick="history.back()">${BACK_SVG}</button><span>${h ? escapeHtml(h.houseName) : 'Listing'}</span></div>`;
+  if (!h) { view.innerHTML = back + `<div class="empty-state">Loading listing...</div>`; return; }
+  view.innerHTML = back + `
+    <div class="listing-card">
+      ${galleryHtml(h)}
+      <div style="padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <h2 style="margin:0 0 4px;font-size:18px">${escapeHtml(h.houseName)}</h2>
+            <p style="color:var(--ink-soft);font-size:13px;margin:0">📍 ${escapeHtml(h.location)}</p>
+          </div>
+          <button class="save-bookmark-btn" data-favorite-id="${escapeHtml(houseId)}" onclick="toggleFavorite('${houseId}')">${BOOKMARK_SVG}</button>
+        </div>
+        <div class="price-tag" style="text-align:left;margin:12px 0 6px">K${escapeHtml(h.price)} / month</div>
+        <span class="rooms-chip">🟢 ${escapeHtml(h.rooms)} Rooms Available</span>
+        <p style="font-size:13px;line-height:1.6;color:var(--ink-soft);margin-top:12px;white-space:pre-line">${escapeHtml(h.info)}</p>
+      </div>
+      ${actionButtons(h, false)}
+    </div>`;
+  updateFavoriteButtons();
+}
+
+function renderSavedPage() {
+  const saved = Array.from(favoritedIds).map(id => allHousesData[id]).filter(Boolean);
+  const html = saved.length ? saved.map(h => `
+    <div class="profile-row" onclick="navigateTo('house-${h.houseId}')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <img src="${escapeHtml(h.imagesArray[0])}" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:8px">
+        <div><strong style="font-size:14px">${escapeHtml(h.houseName)}</strong><div style="font-size:12px;color:var(--ink-soft)">K${escapeHtml(h.price)} / month</div></div>
+      </div><span>›</span>
+    </div>`).join('') : '<div class="empty-state">No saved boarding houses yet. Bookmark listings to view them here.</div>';
+  $('savedView').innerHTML = `<div class="page-back-bar"><button onclick="navigateTo('')">${BACK_SVG}</button><span>Saved Boarding Houses</span></div><div class="profile-section">${html}</div>`;
+}
+
+function renderProfilePage() {
+  const user = auth.currentUser;
+  $('profileView').innerHTML = `
+    <div class="page-back-bar"><button onclick="navigateTo('')">${BACK_SVG}</button><span>Profile</span></div>
+    <div class="profile-section" style="padding:16px">
+      <div style="font-weight:700;font-size:15px">${escapeHtml(user ? user.email : '')}</div>
+      <div style="font-size:12.5px;color:var(--brand-blue);margin-top:4px;cursor:pointer" onclick="AccountMenu.openChangePassword()">Change Password</div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-row" onclick="navigateTo('saved')"><span>Saved Boarding Houses</span><span>›</span></div>
+      <div class="profile-row" onclick="alert('Feature coming soon')"><span>Recently Viewed</span><span>›</span></div>
+      <div class="profile-row" onclick="navigateTo('messages')"><span>My Inquiries</span><span>›</span></div>
+      <div class="profile-row" onclick="alert('Notifications enabled')"><span>Notifications</span><span>›</span></div>
+      <div class="profile-row" onclick="window.open('https://wa.me/260776480862','_blank')"><span>Contact Admin / Help</span><span>›</span></div>
+      <div class="profile-row" onclick="UniPicker.open()"><span>Change University</span><span>›</span></div>
+      <div class="profile-row" onclick="logout()" style="color:#EF4444"><span>Log Out</span><span>›</span></div>
+    </div>`;
+}
+
+const AccountMenu = {
+  openChangePassword() {
+    $('accountModal').innerHTML = `
+      <h3>Change Password</h3>
+      <input type="password" id="curPass" class="payment-input" placeholder="Current password" autocomplete="current-password">
+      <input type="password" id="newPass" class="payment-input" placeholder="New password" autocomplete="new-password">
+      <div id="accErr" style="color:#EF4444;font-size:12px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary" style="background:var(--border);color:var(--ink)" onclick="AccountMenu.close()">Cancel</button>
+        <button class="btn-primary" onclick="AccountMenu.submitChange()">Save</button>
+      </div>`;
+    $('accountOverlay').classList.remove('hidden');
+  },
+  async submitChange() {
+    try {
+      const user = auth.currentUser;
+      const cred = firebase.auth.EmailAuthProvider.credential(user.email, $('curPass').value);
+      await user.reauthenticateWithCredential(cred);
+      await user.updatePassword($('newPass').value);
+      alert('Password successfully updated!');
+      this.close();
+    } catch (e) { $('accErr').textContent = 'Could not update password. Verify your current password.'; }
+  },
+  close() { $('accountOverlay').classList.add('hidden'); }
+};
+
+// Lightbox (swipe, arrows, close button, phone back button)
+const Lightbox = {
+  index: 0, count: 0,
+  open(houseId, i) {
     const h = allHousesData[houseId];
-    if (!h) {
-      view.innerHTML = `<div class="empty-state">Listing not found.</div>`;
-      return;
-    }
-
-    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
-    const isFav = favoritedIds.has(houseId);
-
-    view.innerHTML = `
-      <div class="page-back-bar">
-        <button onclick="history.back()">${backSvg}</button>
-        <span>${escapeHtml(h.houseName)}</span>
-      </div>
-      <div class="profile-section" style="padding:16px;">
-        <div class="gallery-wrap" style="border-radius:12px; overflow:hidden; margin-bottom:14px;">
-          <img src="${h.imagesArray[0]}" style="width:100%; height:220px; object-fit:cover;">
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div>
-            <h2 style="margin:0 0 4px 0; font-size:18px;">${escapeHtml(h.houseName)}</h2>
-            <p style="color:var(--ink-soft); font-size:13px; margin:0;">${escapeHtml(h.location)}</p>
-          </div>
-          <button class="save-bookmark-btn ${isFav?'active':''}" data-favorite-id="${houseId}" onclick="toggleFavorite('${houseId}')">
-            ${BOOKMARK_SVG}
-          </button>
-        </div>
-
-        <div class="price-tag" style="text-align:left; margin:12px 0 6px 0;">K${escapeHtml(String(h.price))} / month</div>
-        <span class="rooms-chip" style="margin-bottom:12px;">🟢 ${escapeHtml(String(h.rooms))} Rooms Available</span>
-        
-        <p style="font-size:13px; line-height:1.6; color:var(--ink-soft); margin-top:10px;">${escapeHtml(h.info)}</p>
-        
-        <div class="action-row" style="padding:14px 0 0 0;">
-          <a href="${h.waTarget}" target="_blank" class="btn-whatsapp">WhatsApp</a>
-          <a href="tel:${h.phone}" class="btn-call">Call Landlord</a>
-          ${h.hasPin ? `<a href="${h.mapUrl}" target="_blank" class="btn-location">Location</a>` : ''}
-        </div>
-      </div>
-    `;
-  }
-
-  // Render Saved Listings Page
-  function renderSavedPage() {
-    const view = document.getElementById('savedView');
-    const saved = Array.from(favoritedIds).map(id => allHousesData[id]).filter(Boolean);
-    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
-
-    const html = saved.length ? saved.map(h => `
-      <div class="profile-row" onclick="navigateTo('house-${h.houseId}')">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <img src="${h.imagesArray[0]}" style="width:52px; height:52px; object-fit:cover; border-radius:8px;">
-          <div>
-            <strong style="font-size:14px; color:var(--ink);">${escapeHtml(h.houseName)}</strong>
-            <div style="font-size:12px; color:var(--ink-soft);">K${escapeHtml(String(h.price))} / month</div>
-          </div>
-        </div>
-        <span>›</span>
-      </div>
-    `).join('') : '<div class="empty-state">No saved boarding houses yet. Bookmark listings to view them here.</div>';
-
-    view.innerHTML = `
-      <div class="page-back-bar"><button onclick="navigateTo('')">${backSvg}</button><span>Saved Boarding Houses</span></div>
-      <div class="profile-section">${html}</div>
-    `;
-  }
-
-  // Render Profile Screen (Exact options from screenshots)
-  function renderProfilePage() {
-    const view = document.getElementById('profileView');
-    const user = auth.currentUser;
-    const backSvg = `<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
-
-    view.innerHTML = `
-      <div class="page-back-bar"><button onclick="navigateTo('')">${backSvg}</button><span>Profile</span></div>
-      <div class="profile-section" style="padding:16px;">
-        <div style="font-weight:700; font-size:15px; color:var(--ink);">${escapeHtml(user ? user.email : '')}</div>
-        <div style="font-size:12.5px; color:var(--brand-blue); margin-top:4px; cursor:pointer;" onclick="AccountMenu.openChangePassword()">Change Password</div>
-      </div>
-      <div class="profile-section">
-        <div class="profile-row" onclick="navigateTo('saved')"><span>Saved Boarding Houses</span><span>›</span></div>
-        <div class="profile-row" onclick="alert('Feature coming soon')"><span>Recently Viewed</span><span>›</span></div>
-        <div class="profile-row" onclick="navigateTo('messages')"><span>My Inquiries</span><span>›</span></div>
-        <div class="profile-row" onclick="alert('Notifications enabled')"><span>Notifications</span><span>›</span></div>
-        <div class="profile-row" onclick="window.open('https://wa.me/260776480862','_blank')"><span>Contact Admin / Help</span><span>›</span></div>
-        <div class="profile-row" onclick="auth.signOut()" style="color:#EF4444;"><span>Log Out</span><span>›</span></div>
-      </div>
-    `;
-  }
-
-  // Password Change Modal
-  const AccountMenu = {
-    openChangePassword() {
-      const modal = document.getElementById('accountModal');
-      modal.innerHTML = `
-        <h3>Change Password</h3>
-        <input type="password" id="curPass" class="payment-input" placeholder="Current password">
-        <input type="password" id="newPass" class="payment-input" placeholder="New password">
-        <div id="accErr" style="color:#EF4444; font-size:12px; margin-bottom:10px;"></div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-primary" style="background:var(--border); color:var(--ink);" onclick="AccountMenu.close()">Cancel</button>
-          <button class="btn-primary" onclick="AccountMenu.submitChange()">Save</button>
-        </div>
-      `;
-      document.getElementById('accountOverlay').classList.remove('hidden');
-    },
-    async submitChange() {
-      const cur = document.getElementById('curPass').value;
-      const nw = document.getElementById('newPass').value;
-      const err = document.getElementById('accErr');
-      try {
-        const user = auth.currentUser;
-        const cred = firebase.auth.EmailAuthProvider.credential(user.email, cur);
-        await user.reauthenticateWithCredential(cred);
-        await user.updatePassword(nw);
-        alert('Password successfully updated!');
-        this.close();
-      } catch (e) {
-        err.textContent = 'Could not update password. Verify your current password.';
-      }
-    },
-    close() { document.getElementById('accountOverlay').classList.add('hidden'); }
-  };
-
-  // Photo Viewer Lightbox
-  const Lightbox = {
-    open(src) {
-      document.getElementById('lightboxImg').src = src;
-      document.getElementById('lightboxOverlay').classList.remove('hidden');
-    },
-    close() { document.getElementById('lightboxOverlay').classList.add('hidden'); }
-  };
+    if (!h) return;
+    const track = $('lbTrack');
+    track.innerHTML = h.imagesArray.map(s => `<div class="lb-slide"><img src="${escapeHtml(s)}" alt="Listing photo"></div>`).join('');
+    this.count = h.imagesArray.length;
+    this.index = i || 0;
+    $('lightboxOverlay').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    track.style.scrollBehavior = 'auto';
+    track.scrollLeft = track.clientWidth * this.index;
+    track.style.scrollBehavior = 'smooth';
+    track.onscroll = () => { this.index = Math.round(track.scrollLeft / track.clientWidth); this.updateUI(); };
+    this.updateUI();
+    history.pushState({ lightbox: true }, '');
+  },
+  step(n) {
+    const track = $('lbTrack');
+    const next = Math.max(0, Math.min(this.count - 1, this.index + n));
+    track.scrollTo({ left: track.clientWidth * next, behavior: 'smooth' });
+  },
+  updateUI() {
+    $('lbCounter').textContent = `${this.index + 1} / ${this.count}`;
+    $('lbPrev').classList.toggle('hidden', this.count < 2 || this.index === 0);
+    $('lbNext').classList.toggle('hidden', this.count < 2 || this.index === this.count - 1);
+  },
+  hide() { $('lightboxOverlay').classList.add('hidden'); document.body.style.overflow = ''; },
+  close() { if (history.state && history.state.lightbox) history.back(); else this.hide(); }
+};
+window.addEventListener('popstate', () => Lightbox.hide());
+document.addEventListener('keydown', (e) => {
+  if ($('lightboxOverlay').classList.contains('hidden')) return;
+  if (e.key === 'Escape') Lightbox.close();
+  if (e.key === 'ArrowLeft') Lightbox.step(-1);
+  if (e.key === 'ArrowRight') Lightbox.step(1);
+});
 </script>
 </body>
 </html>
